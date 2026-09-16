@@ -95,7 +95,7 @@ async function remove() {
     </el-table>
 
     <div class="grand-total">
-      <span class="grand-total-label">Grand Total</span>
+      <span class="grand-total-label">Total Allocated</span>
       <span class="grand-total-value">{{ formatMoney(payment.total_amount) }}</span>
     </div>
 
