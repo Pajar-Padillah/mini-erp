@@ -1,0 +1,40 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug Backend Server",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/backend/cmd/server",
+      "cwd": "${workspaceFolder}/backend"
+    },
+    {
+      "name": "Debug Current Go Test File",
+      "type": "go",
+      "request": "launch",
+      "mode": "test",
+      "program": "${fileDirname}",
+      "cwd": "${workspaceFolder}/backend",
+      "env": {
+        "TEST_DB_DSN": "host=localhost user=erp password=erp dbname=mini_erp_test port=5544 sslmode=disable"
+      }
+    },
+    {
+      "name": "Debug Seed",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/backend/cmd/seed",
+      "cwd": "${workspaceFolder}/backend"
+    },
+    {
+      "name": "Debug Migrate",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/backend/cmd/migrate",
+      "cwd": "${workspaceFolder}/backend"
+    }
+  ]
+}

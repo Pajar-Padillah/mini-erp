@@ -1,0 +1,13 @@
+# Backend
+backend/server
+backend/seed-bin
+/backend/*.exe
+backend/.env
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# Editors / OS
+.DS_Store
+*.swp

@@ -1,0 +1,44 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: mini_erp
+      POSTGRES_USER: erp
+      POSTGRES_PASSWORD: erp
+    ports:
+      - "5544:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U erp -d mini_erp"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_DSN: "host=postgres user=erp password=erp dbname=mini_erp port=5432 sslmode=disable"
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      PORT: "8080"
+      AUTO_SEED: "true"
+      GIN_MODE: release
+    ports:
+      - "8081:8080"
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: "http://localhost:8081"
+    depends_on:
+      - backend
+    ports:
+      - "5173:80"
+
+volumes:
+  pgdata:
