@@ -2,6 +2,21 @@
 
 A Sales Order → Sales Delivery → Sales Invoice → Sales Payment module built as a technical assessment for PT Sant Group Indonesia. Backend in Go (Gin + GORM + PostgreSQL), frontend in Vue 3 (TypeScript + Pinia + Element Plus).
 
+## Screenshots
+
+| | |
+|---|---|
+| **Sales Orders — list** | **Sales Order — detail** |
+| ![Sales Orders list](docs/screenshots/sales-orders-list.png) | ![Sales Order detail](docs/screenshots/sales-order-detail.png) |
+| **Sales Deliveries — list** | **Sales Delivery — detail** |
+| ![Sales Deliveries list](docs/screenshots/sales-deliveries-list.png) | ![Sales Delivery detail](docs/screenshots/sales-delivery-detail.png) |
+| **Sales Invoices — list** | **Sales Invoice — detail** |
+| ![Sales Invoices list](docs/screenshots/sales-invoices-list.png) | ![Sales Invoice detail](docs/screenshots/sales-invoice-detail.png) |
+| **Sales Payments — list** | **Sales Payment — detail (multi-invoice allocation)** |
+| ![Sales Payments list](docs/screenshots/sales-payments-list.png) | ![Sales Payment detail](docs/screenshots/sales-payment-detail.png) |
+| **Check Stock modal** | |
+| ![Check Stock modal](docs/screenshots/check-stock.png) | |
+
 ## 1. Project Overview
 
 Implements the full document chain for a sales flow:
@@ -77,12 +92,12 @@ make migrate-down   # -N to step back N, or edit the Makefile target
 
 ## 6. Seed Data
 
-`backend/seed/data.go`, run via `make seed` or automatically in Docker (`AUTO_SEED=true`). Idempotent — safe to re-run. Modeled on the real [Sant Group Indonesia](https://santgroup.co.id) business: a consumer brand company building fragrance and personal-care brands, with its own manufacturing arm and an omnichannel distribution business.
+`backend/seed/data.go`, run via `make seed` or automatically in Docker (`AUTO_SEED=true`). Idempotent — safe to re-run.
 
-- 2 companies: `SGI` PT Sant Group Indonesia (brand & distribution) and `SMI` PT Sant Manufaktur Indonesia (manufacturing) — mirroring Sant Group's real manufacturing → distribution → retail supply chain.
-- 3 real Sant Group brands — Crusita and Yors Studio (fragrance, Eau de Parfum + body mist), Aoera (personal care) — 17 products total with realistic IDR retail pricing.
-- 500 units of stock per product, **per company** (so company isolation is visible immediately)
-- 4 sample Sales Orders (submitted/ACTIVE, document-numbered through the same per-company sequence the API uses), 2 per company against realistic wholesale/retail customers — ready to be partially delivered, invoiced, and paid by a reviewer without first building data by hand.
+- 2 companies (`COMP1` PT Sant Retail Nusantara, `COMP2` PT Sant Manufaktur Indonesia)
+- 2 brands, 10 products (5 per brand)
+- 100 units of stock per product, **per company** (so company isolation is visible immediately)
+- 1 sample Sales Order (`COMP1-SO-SEED-000001`, submitted/ACTIVE, 2 lines) ready to be partially delivered, invoiced, and paid by a reviewer without first building data by hand.
 
 ## 7. ERD
 
@@ -223,7 +238,7 @@ Every transactional table carries `company_id`. Enforcement is two-layered:
 - **Query scoping**: every list/read filters by `company_id` (via `X-Company-ID` header/query param — see §21 on the auth stand-in).
 - **Cross-reference guard**: `service.AssertSameCompany` rejects creating a Delivery/Invoice/Payment-allocation against a parent (Order/Delivery/Invoice) that belongs to a different company, even if the caller's own `company_id` is otherwise valid. See `TestMultiCompanyIsolation_CannotDeliverAgainstOtherCompanyOrder`.
 - **Stock isolation**: `stocks` is unique on `(company_id, product_id)`; a delivery only ever locks/deducts its own company's row. See `TestMultiCompanyIsolation_StockNotSharedAcrossCompanies`.
-- **Numbering isolation**: document numbers embed the company code (`SO-SGI-2026-000001` vs `SO-SMI-2026-000001`) and are assigned from a per-`(company_id, doc_type)` sequence row, so two companies' first order both being `...-000001` is expected, not a collision. See `TestMultiCompanyIsolation_DocumentNumberingIsPerCompany`.
+- **Numbering isolation**: document numbers embed the company code (`SO-COMP1-2026-000001` vs `SO-COMP2-2026-000001`) and are assigned from a per-`(company_id, doc_type)` sequence row, so two companies' first order both being `...-000001` is expected, not a collision. See `TestMultiCompanyIsolation_DocumentNumberingIsPerCompany`.
 
 ## 17. Automated Tests
 
@@ -253,7 +268,7 @@ The first bottleneck is **list/detail queries doing per-row aggregate lookups** 
 
 ## 19. Assumptions
 
-- **Terminology**: this document and the codebase say **"Company"** everywhere the task brief says **"entitas legal"** (legal entity) — same concept, renamed once for a friendlier user-facing term (this is also the convention most real ERPs use: SAP, Odoo, Xero, and QuickBooks all call it "Company" in the UI, reserving "legal entity" for internal/legal documentation). It refers to a separately incorporated company (its own tax ID, its own books) — never a brand, and never an office/function. The seed data's two companies (`SGI` PT Sant Group Indonesia, `SMI` PT Sant Manufaktur Indonesia) map directly to the brief's retail/manufaktur functions, each run by its own legal entity.
+- **Terminology**: this document and the codebase say **"Company"** everywhere the task brief says **"entitas legal"** (legal entity) — same concept, renamed once for a friendlier user-facing term (this is also the convention most real ERPs use: SAP, Odoo, Xero, and QuickBooks all call it "Company" in the UI, reserving "legal entity" for internal/legal documentation). It refers to a separately incorporated company (its own tax ID, its own books) — never a brand, and never an office/function. The seed data's two companies (`COMP1` PT Sant Retail Nusantara, `COMP2` PT Sant Manufaktur Indonesia) map directly to the brief's retail/manufaktur functions, each run by its own legal entity.
 - No authentication exists in the source system this stands in for; a real deployment would resolve the company from an authenticated session instead of a client-supplied header.
 - `customer_name` is free text — no customer master data module was in scope.
 - One order line = one product; no BOM/kit/bundle concept.
