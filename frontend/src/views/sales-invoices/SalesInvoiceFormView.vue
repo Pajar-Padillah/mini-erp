@@ -87,6 +87,7 @@ const rows = computed<PickerRow[]>(() =>
       sourceItemId: it.id,
       productName: it.product?.name ?? `Product #${it.product_id}`,
       available: it.remaining_qty ?? it.qty,
+      unitPrice: it.unit_price,
     })),
 )
 

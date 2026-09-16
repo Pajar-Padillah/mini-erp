@@ -97,10 +97,18 @@ function createDelivery() {
       <el-table-column label="Remaining" width="140">
         <template #default="{ row }">{{ formatQty(row.remaining_qty ?? row.qty_ordered) }}</template>
       </el-table-column>
-      <el-table-column label="Unit Price" width="160">
+      <el-table-column label="Price" width="160">
         <template #default="{ row }">{{ formatMoney(row.unit_price) }}</template>
       </el-table-column>
+      <el-table-column label="Total" width="160" align="right">
+        <template #default="{ row }">{{ formatMoney(Number(row.qty_ordered) * Number(row.unit_price)) }}</template>
+      </el-table-column>
     </el-table>
+
+    <div class="grand-total">
+      <span class="grand-total-label">Grand Total</span>
+      <span class="grand-total-value">{{ formatMoney(order.total_amount) }}</span>
+    </div>
 
     <template v-if="order.notes">
       <div class="section-title">Notes</div>

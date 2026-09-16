@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Delete, Plus } from '@element-plus/icons-vue'
@@ -7,6 +7,7 @@ import { salesOrderApi } from '../../api/salesOrderApi'
 import { useCatalogStore } from '../../stores/catalogStore'
 import { useCompanyStore } from '../../stores/companyStore'
 import { apiErrorMessage } from '../../api/client'
+import { formatMoney } from '../../utils/format'
 import PageHeader from '../../components/PageHeader.vue'
 
 interface FormLine {
@@ -57,6 +58,11 @@ onMounted(async () => {
     }
   }
 })
+
+function lineTotal(row: FormLine) {
+  return (row.qty_ordered || 0) * (row.unit_price || 0)
+}
+const grandTotal = computed(() => items.value.reduce((sum, it) => sum + lineTotal(it), 0))
 
 function addRow() {
   items.value.push({ product_id: null, qty_ordered: 1, unit_price: 0 })
@@ -185,9 +191,14 @@ async function submit(thenSubmit = false) {
             <el-input-number v-model="row.qty_ordered" :min="0.001" :controls="false" style="width: 100%" />
           </template>
         </el-table-column>
-        <el-table-column label="Unit Price" width="180">
+        <el-table-column label="Price" width="180">
           <template #default="{ row }">
             <el-input-number v-model="row.unit_price" :min="0" :controls="false" style="width: 100%" />
+          </template>
+        </el-table-column>
+        <el-table-column label="Total" width="180" align="right">
+          <template #default="{ row }">
+            {{ formatMoney(lineTotal(row)) }}
           </template>
         </el-table-column>
         <el-table-column label="" width="56" align="center">
@@ -206,6 +217,11 @@ async function submit(thenSubmit = false) {
           </template>
         </el-table-column>
       </el-table>
+
+      <div class="grand-total">
+        <span class="grand-total-label">Grand Total</span>
+        <span class="grand-total-value">{{ formatMoney(grandTotal) }}</span>
+      </div>
 
       <div class="form-footer">
         <el-button @click="router.back()">Cancel</el-button>

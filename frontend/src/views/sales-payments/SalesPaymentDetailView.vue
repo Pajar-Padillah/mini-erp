@@ -94,6 +94,11 @@ async function remove() {
       </el-table-column>
     </el-table>
 
+    <div class="grand-total">
+      <span class="grand-total-label">Grand Total</span>
+      <span class="grand-total-value">{{ formatMoney(payment.total_amount) }}</span>
+    </div>
+
     <template v-if="payment.notes">
       <div class="section-title">Notes</div>
       <p style="color: var(--gray-700); margin: 0">{{ payment.notes }}</p>
