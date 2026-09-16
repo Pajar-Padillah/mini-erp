@@ -198,7 +198,7 @@ async function submit(thenSubmit = false) {
           <el-button type="primary" :loading="submitting" @click="submit()">Save Changes</el-button>
         </template>
         <template v-else>
-          <el-button :loading="pendingAction === 'draft'" :disabled="submitting" @click="submit(false)">Create Draft</el-button>
+          <el-button type="warning" plain :loading="pendingAction === 'draft'" :disabled="submitting" @click="submit(false)">Create Draft</el-button>
           <el-button type="primary" :loading="pendingAction === 'submit'" :disabled="submitting" @click="submit(true)">
             Create &amp; Submit
           </el-button>
