@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
-import { Search } from '@element-plus/icons-vue'
 import { useCatalogStore } from '../stores/catalogStore'
 import { formatQty } from '../utils/format'
 
@@ -49,10 +48,6 @@ const filtered = computed(() => {
 </script>
 
 <template>
-  <el-button size="small" :icon="Search" @click="open">
-    Check Stock <span class="shortcut-hint">/</span>
-  </el-button>
-
   <el-dialog v-model="visible" title="Check Stock" width="700px" align-center>
     <el-input v-model="search" placeholder="Search by product name or SKU..." clearable autofocus />
     <el-table :data="filtered" v-loading="loading" size="small" style="margin-top: 12px" max-height="360">

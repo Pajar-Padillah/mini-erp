@@ -3,7 +3,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 const router = createRouter({
   history: createWebHistory(),
   routes: [
-    { path: '/', redirect: '/sales-orders' },
+    { path: '/', name: 'home', component: () => import('../views/HomeView.vue') },
 
     { path: '/sales-orders', name: 'sales-orders-list', component: () => import('../views/sales-orders/SalesOrderListView.vue') },
     { path: '/sales-orders/new', name: 'sales-orders-new', component: () => import('../views/sales-orders/SalesOrderFormView.vue') },

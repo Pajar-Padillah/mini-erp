@@ -57,48 +57,50 @@ const filtered = computed(() => {
       </template>
     </PageHeader>
 
-    <div class="filter-bar">
-      <el-input v-model="search" placeholder="Search by invoice no..." clearable style="width: 280px" />
-      <el-select v-model="statusFilter" placeholder="Document status" clearable style="width: 180px">
-        <el-option label="DRAFT" value="DRAFT" />
-        <el-option label="ACTIVE" value="ACTIVE" />
-        <el-option label="PROCESSED" value="PROCESSED" />
-        <el-option label="COMPLETED" value="COMPLETED" />
-      </el-select>
-      <el-select v-model="paymentStatusFilter" placeholder="Payment status" clearable style="width: 180px">
-        <el-option label="UNPAID" value="UNPAID" />
-        <el-option label="PARTIALLY_PAID" value="PARTIALLY_PAID" />
-        <el-option label="PAID" value="PAID" />
-      </el-select>
+    <div class="card">
+      <div class="filter-bar">
+        <el-input v-model="search" placeholder="Search by invoice no..." clearable style="width: 280px" />
+        <el-select v-model="statusFilter" placeholder="Document status" clearable style="width: 180px">
+          <el-option label="DRAFT" value="DRAFT" />
+          <el-option label="ACTIVE" value="ACTIVE" />
+          <el-option label="PROCESSED" value="PROCESSED" />
+          <el-option label="COMPLETED" value="COMPLETED" />
+        </el-select>
+        <el-select v-model="paymentStatusFilter" placeholder="Payment status" clearable style="width: 180px">
+          <el-option label="UNPAID" value="UNPAID" />
+          <el-option label="PARTIALLY_PAID" value="PARTIALLY_PAID" />
+          <el-option label="PAID" value="PAID" />
+        </el-select>
+      </div>
+
+      <el-table
+        :data="filtered"
+        v-loading="store.loading"
+        row-class-name="clickable-row"
+        @row-click="(row: any) => router.push({ name: 'sales-invoices-detail', params: { id: row.id } })"
+      >
+        <el-table-column prop="invoice_no" label="Invoice No" min-width="200" />
+        <el-table-column label="Sales Delivery" min-width="180">
+          <template #default="{ row }">{{ row.items?.[0]?.source_delivery_item?.sales_delivery?.delivery_no ?? '—' }}</template>
+        </el-table-column>
+        <el-table-column label="Date" width="120">
+          <template #default="{ row }">{{ row.invoice_date?.slice(0, 10) }}</template>
+        </el-table-column>
+        <el-table-column label="Total" width="150">
+          <template #default="{ row }">{{ formatMoney(row.total_amount) }}</template>
+        </el-table-column>
+        <el-table-column label="Paid" width="150">
+          <template #default="{ row }">{{ formatMoney(row.paid_amount) }}</template>
+        </el-table-column>
+        <el-table-column label="Document Status" width="160">
+          <template #default="{ row }"><StatusTag :status="row.document_status" /></template>
+        </el-table-column>
+        <el-table-column label="Payment Status" width="160">
+          <template #default="{ row }"><PaymentStatusTag :status="row.payment_status" /></template>
+        </el-table-column>
+      </el-table>
+
+      <PaginationBar v-if="store.meta" v-model:page="page" :page-size="pageSize" :total="store.meta.total_items" />
     </div>
-
-    <el-table
-      :data="filtered"
-      v-loading="store.loading"
-      row-class-name="clickable-row"
-      @row-click="(row: any) => router.push({ name: 'sales-invoices-detail', params: { id: row.id } })"
-    >
-      <el-table-column prop="invoice_no" label="Invoice No" min-width="200" />
-      <el-table-column label="Sales Delivery" min-width="180">
-        <template #default="{ row }">{{ row.items?.[0]?.source_delivery_item?.sales_delivery?.delivery_no ?? '—' }}</template>
-      </el-table-column>
-      <el-table-column label="Date" width="120">
-        <template #default="{ row }">{{ row.invoice_date?.slice(0, 10) }}</template>
-      </el-table-column>
-      <el-table-column label="Total" width="150">
-        <template #default="{ row }">{{ formatMoney(row.total_amount) }}</template>
-      </el-table-column>
-      <el-table-column label="Paid" width="150">
-        <template #default="{ row }">{{ formatMoney(row.paid_amount) }}</template>
-      </el-table-column>
-      <el-table-column label="Document Status" width="160">
-        <template #default="{ row }"><StatusTag :status="row.document_status" /></template>
-      </el-table-column>
-      <el-table-column label="Payment Status" width="160">
-        <template #default="{ row }"><PaymentStatusTag :status="row.payment_status" /></template>
-      </el-table-column>
-    </el-table>
-
-    <PaginationBar v-if="store.meta" v-model:page="page" :page-size="pageSize" :total="store.meta.total_items" />
   </div>
 </template>

@@ -20,14 +20,23 @@
   --success: #16a34a;
   --success-light: #f0fdf4;
 
+  --brand-gradient: linear-gradient(135deg, #6366f1 0%, #4f46e5 60%, #4338ca 100%);
+
   --border: var(--gray-200);
-  --bg-page: var(--gray-50);
+  --border-soft: rgba(15, 23, 42, 0.06);
+  --bg-page: #f6f7fb;
   --bg-card: #ffffff;
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
+  --radius-sm: 8px;
+  --radius-md: 11px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
   --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
-  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 8px 20px rgba(15, 23, 42, 0.07);
+  --shadow-lg: 0 16px 32px rgba(15, 23, 42, 0.12);
+  --shadow-glow: 0 8px 20px -4px rgba(79, 70, 229, 0.35);
+
+  --font-sans: 'Inter', -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-heading: 'Plus Jakarta Sans', var(--font-sans);
 
   /* Element Plus theme overrides */
   --el-color-primary: var(--brand);
@@ -37,15 +46,18 @@
   --el-color-primary-light-8: #e0e7ff;
   --el-color-primary-light-9: var(--brand-light);
   --el-color-primary-dark-2: var(--brand-dark);
-  --el-border-radius-base: var(--radius-sm);
+  --el-border-radius-base: var(--radius-md);
   --el-font-size-base: 14px;
+  --el-font-family: var(--font-sans);
 
-  font-family: 'Inter', -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-sans);
   color: var(--gray-700);
 }
 
 * {
   box-sizing: border-box;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gray-200) transparent;
 }
 
 html,
@@ -53,12 +65,46 @@ body {
   margin: 0;
   padding: 0;
   background: var(--bg-page);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Slim, modern scrollbars */
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--gray-200);
+  border-radius: 999px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-400);
+}
+
+/* Visible, on-brand keyboard focus instead of the default browser outline.
+   Native form controls (input/select/textarea) are excluded - Element Plus
+   already gives them their own focus ring via the wrapper's box-shadow, and
+   this outline would sit on the inner <input> at a different radius/offset,
+   producing a mismatched double ring. */
+button:focus-visible,
+a:focus-visible,
+[tabindex]:not(input):not(select):not(textarea):focus-visible {
+  outline: 2px solid var(--brand-light-2);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
 }
 
 h1,
 h2,
 h3 {
+  font-family: var(--font-heading);
   color: var(--gray-900);
+  letter-spacing: -0.01em;
   margin: 0;
 }
 
@@ -70,69 +116,485 @@ a {
 .app-shell {
   min-height: 100vh;
 }
+.app-body {
+  min-height: 100vh;
+}
+
+.app-logo {
+  font-family: var(--font-heading);
+  font-size: 19px;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  letter-spacing: -0.02em;
+  padding: 22px 24px;
+  border-bottom: 1px solid var(--border-soft);
+  flex-shrink: 0;
+}
+.app-logo.is-collapsed {
+  padding: 22px 0;
+  text-align: center;
+}
+.app-logo .accent {
+  background: var(--brand-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Sidebar */
+.app-sidebar {
+  background: var(--bg-card);
+  border-right: 1px solid var(--border-soft);
+  display: flex;
+  flex-direction: column;
+  transition: width 0.2s ease;
+  overflow: hidden;
+}
+.app-sidebar .el-aside {
+  overflow: hidden;
+}
+
+.app-sidebar-office {
+  flex-shrink: 0;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-soft);
+}
+.app-sidebar-office.is-collapsed {
+  padding: 8px 0;
+  display: flex;
+  justify-content: center;
+}
+.company-switcher {
+  width: 100%;
+}
+.company-switcher .el-select__wrapper {
+  border-radius: var(--radius-md);
+  background: var(--gray-50);
+  border: 1px solid var(--border);
+  box-shadow: none !important;
+  padding: 8px 10px;
+  min-height: 44px;
+  transition: background 0.15s, border-color 0.15s;
+}
+.company-switcher .el-select__wrapper:hover {
+  border-color: var(--brand-light-2);
+}
+/* Collapsed: drop the bordered "box" look so it reads as a plain sidebar
+   icon (like the menu items below it) instead of a separate wide control. */
+.company-switcher.is-collapsed {
+  width: 40px;
+}
+.company-switcher.is-collapsed .el-select__wrapper {
+  background: var(--brand-light);
+  border: none;
+  padding: 9px;
+  min-height: 0;
+  border-radius: var(--radius-sm);
+  justify-content: center;
+}
+.company-switcher.is-collapsed .el-select__wrapper:hover {
+  background: var(--brand-light-2);
+}
+.company-switcher.is-collapsed .el-select__suffix {
+  display: none;
+}
+.company-switcher.is-collapsed .company-switcher-label {
+  display: none;
+}
+.company-switcher-icon {
+  color: var(--brand);
+  font-size: 16px;
+}
+.company-switcher-label {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+  overflow: hidden;
+}
+.company-switcher-code {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gray-900);
+}
+.company-switcher-name {
+  font-size: 11.5px;
+  color: var(--gray-500);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app-sidebar-menu {
+  border-right: none;
+  flex: 1;
+  overflow-x: hidden;
+
+  --el-menu-bg-color: transparent;
+  --el-menu-text-color: var(--gray-500);
+  --el-menu-hover-bg-color: var(--gray-100);
+  --el-menu-hover-text-color: var(--gray-900);
+  --el-menu-active-color: var(--brand);
+  --el-menu-item-height: 42px;
+  --el-menu-sub-item-height: 40px;
+  --el-menu-item-font-size: 14px;
+  --el-menu-border-color: transparent;
+}
+.app-sidebar-menu:not(.el-menu--collapse) {
+  width: 100%;
+  padding: 12px;
+}
+.app-sidebar-menu.el-menu--collapse {
+  /* Element Plus fixes the collapsed menu to exactly icon-width + 2*base-level-padding;
+     horizontal padding here would shrink the content area below that and clip the icons. */
+  padding: 8px 0;
+}
+.app-sidebar-menu .el-menu-item,
+.app-sidebar-menu .el-sub-menu__title {
+  border-radius: var(--radius-md);
+  margin-bottom: 2px;
+  font-weight: 500;
+  transition: background 0.15s, color 0.15s;
+}
+.app-sidebar-menu .el-menu-item.is-active {
+  background: var(--brand-light);
+  color: var(--brand);
+  font-weight: 700;
+}
+.app-sidebar-menu .el-menu-item.is-active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--brand-gradient);
+}
+.app-sidebar-menu.el-menu--collapse .el-menu-item.is-active::before {
+  display: none;
+}
+.app-sidebar-menu .el-menu-item .el-icon,
+.app-sidebar-menu .el-sub-menu__title .el-icon {
+  font-size: 15px;
+}
+
+/* Colored icon bubble per module, matching the tabs/search-suggestion palette. */
+.menu-icon-bubble {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  margin-right: 10px;
+  border-radius: var(--radius-sm);
+  transition: margin 0.15s;
+}
+.app-sidebar-menu.el-menu--collapse .menu-icon-bubble {
+  width: 24px;
+  height: 24px;
+  margin-right: 0;
+}
+.menu-icon-bubble.indigo {
+  background: var(--brand-light);
+  color: var(--brand);
+}
+.menu-icon-bubble.blue {
+  background: #eff6ff;
+  color: #2563eb;
+}
+.menu-icon-bubble.amber {
+  background: var(--warning-light);
+  color: #b45309;
+}
+.menu-icon-bubble.green {
+  background: var(--success-light);
+  color: #15803d;
+}
+
+.app-sidebar-collapse-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  border: none;
+  background: transparent;
+  border-top: 1px solid var(--border-soft);
+  color: var(--gray-500);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 14px 20px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.app-sidebar-collapse-btn:hover {
+  background: var(--gray-100);
+  color: var(--gray-900);
+}
+.app-sidebar-collapse-btn.is-collapsed {
+  justify-content: center;
+  padding: 14px 0;
+}
 
 .app-header {
-  background: var(--bg-card);
-  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border-soft);
+  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.02);
   height: 64px;
   padding: 0;
 }
 .app-header-inner {
-  max-width: 1160px;
   height: 100%;
-  margin: 0 auto;
   padding: 0 32px;
   display: flex;
   align-items: center;
-  gap: 32px;
+  justify-content: space-between;
+  gap: 24px;
 }
-
-.app-logo {
-  font-size: 18px;
-  font-weight: 700;
-  white-space: nowrap;
-  letter-spacing: -0.02em;
-}
-.app-logo .accent {
-  color: var(--brand);
-}
-
-.app-nav {
+.app-header-actions {
   display: flex;
-  gap: 4px;
-  flex: 1;
+  align-items: center;
+  gap: 16px;
 }
-.app-nav a {
-  color: var(--gray-500);
-  text-decoration: none;
-  font-size: 14px;
-  font-weight: 500;
-  padding: 8px 14px;
-  border-radius: var(--radius-md);
-  transition: background 0.15s, color 0.15s;
+
+.nav-search {
+  width: 320px;
+  max-width: 100%;
 }
-.app-nav a:hover {
+.nav-search .el-input__wrapper {
+  border-radius: 999px;
   background: var(--gray-100);
-  color: var(--gray-900);
+  box-shadow: none !important;
+  padding-left: 16px;
+  transition: background 0.15s, box-shadow 0.15s;
 }
-.app-nav a.router-link-active {
+.nav-search .el-input__wrapper:hover {
+  background: var(--gray-200);
+}
+.nav-search .el-input__wrapper.is-focus {
+  background: var(--bg-card);
+  box-shadow: 0 0 0 2px var(--brand-light-2), var(--shadow-sm) !important;
+}
+
+/* Search suggestions popper */
+.nav-search-popper.el-popper {
+  border: 1px solid var(--border-soft) !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-lg) !important;
+  overflow: hidden;
+  margin-top: 4px;
+}
+.nav-search-popper .el-autocomplete-suggestion__wrap {
+  padding: 6px;
+}
+.nav-search-popper .el-autocomplete-suggestion__list li {
+  padding: 0;
+  border-radius: var(--radius-sm);
+  line-height: normal;
+}
+.nav-search-popper .el-autocomplete-suggestion__list li:hover,
+.nav-search-popper .el-autocomplete-suggestion__list li.highlighted {
+  background: var(--gray-100);
+}
+.nav-search-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--gray-700);
+}
+.nav-search-item-icon {
+  flex-shrink: 0;
+  font-size: 15px;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+}
+.nav-search-item-icon.indigo {
   background: var(--brand-light);
   color: var(--brand);
 }
+.nav-search-item-icon.blue {
+  background: #eff6ff;
+  color: #2563eb;
+}
+.nav-search-item-icon.amber {
+  background: var(--warning-light);
+  color: #b45309;
+}
+.nav-search-item-icon.green {
+  background: var(--success-light);
+  color: #15803d;
+}
 
-.shortcut-hint {
-  display: inline-flex;
+/* Chrome-style tab bar */
+.tab-bar {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  padding: 10px 12px 0;
+  background: var(--gray-100);
+  border-bottom: 1px solid var(--border-soft);
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex-shrink: 0;
+}
+.app-tab {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  max-width: 200px;
+  min-width: 130px;
+  padding: 9px 8px 9px 12px;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  background: rgba(255, 255, 255, 0.35);
+  color: var(--gray-500);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, box-shadow 0.12s;
+}
+.app-tab.is-home {
+  min-width: 0;
+  padding-right: 12px;
+}
+.app-tab:hover {
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--gray-900);
+}
+.app-tab.is-active {
+  background: var(--bg-card);
+  color: var(--gray-900);
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+}
+.app-tab.is-active::after {
+  content: '';
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 0;
+  height: 2.5px;
+  border-radius: 3px 3px 0 0;
+  background: var(--brand-gradient);
+}
+.app-tab.is-drag-over {
+  box-shadow: inset 2px 0 0 0 var(--brand);
+}
+
+/* Tab open/close animation */
+.app-tab-move,
+.app-tab-enter-active,
+.app-tab-leave-active {
+  transition: transform 0.18s ease, opacity 0.18s ease;
+}
+.app-tab-enter-from,
+.app-tab-leave-to {
+  opacity: 0;
+  transform: translateY(4px) scale(0.96);
+}
+.app-tab-leave-active {
+  position: absolute;
+}
+
+.app-tab-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.app-tab-icon.indigo {
+  color: var(--brand);
+}
+.app-tab-icon.blue {
+  color: #2563eb;
+}
+.app-tab-icon.amber {
+  color: #b45309;
+}
+.app-tab-icon.green {
+  color: #15803d;
+}
+.app-tab-title {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.app-tab-close {
+  display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 16px;
-  padding: 0 4px;
-  margin-left: 2px;
-  border-radius: 4px;
-  background: var(--gray-100);
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
   color: var(--gray-500);
+  opacity: 0;
+  cursor: pointer;
   font-size: 11px;
-  font-family: ui-monospace, monospace;
-  line-height: 1.6;
+  transition: background 0.12s, opacity 0.12s, color 0.12s;
+}
+.app-tab:hover .app-tab-close,
+.app-tab.is-active .app-tab-close {
+  opacity: 0.7;
+}
+.app-tab-close:hover {
+  opacity: 1 !important;
+  background: var(--danger-light);
+  color: var(--danger);
+}
+
+.tab-context-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+}
+.tab-context-menu {
+  position: fixed;
+  min-width: 180px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+}
+.tab-context-menu button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gray-700);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.tab-context-menu button:hover:not(:disabled) {
+  background: var(--gray-100);
+}
+.tab-context-menu button:disabled {
+  color: var(--gray-400);
+  cursor: not-allowed;
 }
 
 .app-main {
@@ -141,8 +603,7 @@ a {
 
 /* Page layout */
 .page {
-  max-width: 1160px;
-  margin: 0 auto;
+  width: 100%;
 }
 .page-header {
   display: flex;
@@ -161,8 +622,9 @@ a {
   flex-shrink: 0;
 }
 .page-header h2 {
-  font-size: 22px;
-  font-weight: 700;
+  font-size: 23px;
+  font-weight: 800;
+  letter-spacing: -0.015em;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -227,10 +689,15 @@ a {
 }
 .summary-card {
   background: var(--bg-card);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-soft);
   border-radius: var(--radius-lg);
   padding: 14px 18px;
   box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.15s, transform 0.15s;
+}
+.summary-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
 }
 .summary-card .label {
   font-size: 12px;
@@ -246,10 +713,10 @@ a {
 
 .card {
   background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-xl);
   padding: 28px 32px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-md);
 }
 
 /* Two-column form grid: each direct el-form-item becomes a grid cell.
@@ -289,7 +756,7 @@ a {
   gap: 10px;
   margin-top: 24px;
   padding-top: 20px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--border-soft);
 }
 
 .grand-total {
@@ -324,13 +791,21 @@ a {
 .status-pill {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   font-size: 12px;
   font-weight: 600;
   padding: 3px 10px;
   border-radius: 999px;
   line-height: 1.6;
   white-space: nowrap;
+}
+.status-pill::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: currentColor;
 }
 .status-pill.gray {
   background: var(--gray-100);
@@ -359,34 +834,78 @@ a {
   overflow: hidden;
   border: 1px solid var(--border);
   --el-table-border-color: var(--border);
-  --el-table-header-bg-color: var(--gray-50);
-  --el-table-row-hover-bg-color: var(--gray-50);
+  --el-table-row-hover-bg-color: var(--brand-light);
 }
 .el-table th.el-table__cell {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--gray-500);
+  height: 44px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--brand-dark);
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
+  background: var(--brand-light) !important;
+  border-bottom: 1px solid var(--brand-light-2);
+}
+.el-table th.el-table__cell .cell {
+  color: inherit;
 }
 .el-table td.el-table__cell {
+  padding: 11px 0;
   font-size: 14px;
   color: var(--gray-700);
 }
+/* Zebra striping for easier row scanning. */
+.el-table .el-table__row:nth-child(even) td.el-table__cell {
+  background: var(--gray-50);
+}
 .el-table .clickable-row {
   cursor: pointer;
+  box-shadow: inset 3px 0 0 0 transparent;
+  transition: background 0.1s, box-shadow 0.1s;
+}
+.el-table .clickable-row:hover {
+  box-shadow: inset 3px 0 0 0 var(--brand);
+}
+/* Hint that the row is clickable: brand-colored, bold first column (the
+   document number in every list view). */
+.el-table .clickable-row td.el-table__cell:first-child .cell {
+  font-weight: 700;
+  color: var(--brand);
+}
+/* Inside a .card, the card's own border/shadow is the outer frame -
+   the table shouldn't draw a second border, but it keeps its own
+   rounded corners so the colored header stays neatly clipped. */
+.card .el-table {
+  border: none;
+  border-radius: var(--radius-md);
+  overflow: hidden;
 }
 
 /* Buttons */
 .el-button {
   border-radius: var(--radius-sm);
-  font-weight: 500;
+  font-weight: 600;
+  transition: transform 0.12s, box-shadow 0.12s, background 0.12s;
 }
 .el-button--primary,
 .el-button--warning,
 .el-button--danger,
 .el-button--success {
   box-shadow: var(--shadow-sm);
+}
+.el-button--primary {
+  background: var(--brand-gradient);
+  border-color: transparent;
+}
+.el-button--primary:hover,
+.el-button--primary:focus {
+  background: var(--brand-gradient);
+  filter: brightness(1.06);
+  border-color: transparent;
+  box-shadow: var(--shadow-glow);
+}
+.el-button:not(.is-disabled):not(.is-text):hover {
+  transform: translateY(-1px);
 }
 
 /* Pagination */
@@ -397,7 +916,7 @@ a {
   gap: 12px;
   margin-top: 14px;
   padding-top: 14px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--border-soft);
   flex-wrap: wrap;
 }
 .pagination-info {
@@ -423,4 +942,83 @@ a {
 .el-form-item__label {
   font-weight: 500;
   color: var(--gray-700);
+}
+
+/* User avatar */
+.user-avatar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: default;
+}
+.user-avatar-initials {
+  background: var(--brand-light);
+  color: var(--brand);
+  font-size: 13px;
+  font-weight: 700;
+}
+.user-avatar-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--gray-900);
+  white-space: nowrap;
+}
+
+/* Home shortcuts */
+.home-shortcut-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 16px;
+  margin-top: 8px;
+}
+.home-shortcut-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+.home-shortcut-card:hover {
+  border-color: var(--brand-light-2);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-3px);
+}
+.home-shortcut-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 19px;
+  margin-bottom: 14px;
+}
+.home-shortcut-icon.indigo {
+  background: var(--brand-light);
+  color: var(--brand);
+}
+.home-shortcut-icon.blue {
+  background: #eff6ff;
+  color: #2563eb;
+}
+.home-shortcut-icon.amber {
+  background: var(--warning-light);
+  color: #b45309;
+}
+.home-shortcut-icon.green {
+  background: var(--success-light);
+  color: #15803d;
+}
+.home-shortcut-title {
+  font-family: var(--font-heading);
+  font-size: 15.5px;
+  font-weight: 700;
+  color: var(--gray-900);
+}
+.home-shortcut-desc {
+  font-size: 13px;
+  color: var(--gray-500);
+  margin-top: 6px;
 }

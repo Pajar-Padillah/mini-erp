@@ -1,26 +1,29 @@
 <script setup lang="ts">
 import { watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import CompanySwitcher from './components/CompanySwitcher.vue'
+import { useRouter } from 'vue-router'
+import AppSidebar from './components/AppSidebar.vue'
+import NavSearch from './components/NavSearch.vue'
+import UserAvatar from './components/UserAvatar.vue'
 import StockCheckModal from './components/StockCheckModal.vue'
+import TabBar from './components/TabBar.vue'
 import { useCompanyStore } from './stores/companyStore'
+import { useTabsStore } from './stores/tabsStore'
 
-const route = useRoute()
 const router = useRouter()
 const companyStore = useCompanyStore()
+const tabsStore = useTabsStore()
 
-function isActiveModule(prefix: string) {
-  return route.path === prefix || route.path.startsWith(prefix + '/')
-}
+router.afterEach((to) => {
+  tabsStore.openTab(to)
+})
 
 watch(
   () => companyStore.selectedCompanyId,
   (newId, oldId) => {
+    // Open tabs may hold another company's documents - start fresh rather
+    // than risk showing stale, cross-company data from a cached tab.
     if (!oldId || newId === oldId) return
-    const name = route.name?.toString()
-    if (!name || name.endsWith('-list')) return
-    const moduleName = name.replace(/-(new|edit|detail)$/, '')
-    router.push({ name: `${moduleName}-list` })
+    tabsStore.closeAll(router)
   },
 )
 </script>
@@ -28,22 +31,26 @@ watch(
 <template>
   <el-config-provider :message="{ showClose: true }">
     <el-container class="app-shell">
-      <el-header class="app-header" height="64px">
-        <div class="app-header-inner">
-          <div class="app-logo">Mini<span class="accent">ERP</span></div>
-          <nav class="app-nav">
-            <router-link to="/sales-orders" :class="{ 'router-link-active': isActiveModule('/sales-orders') }">Sales Orders</router-link>
-            <router-link to="/sales-deliveries" :class="{ 'router-link-active': isActiveModule('/sales-deliveries') }">Sales Deliveries</router-link>
-            <router-link to="/sales-invoices" :class="{ 'router-link-active': isActiveModule('/sales-invoices') }">Sales Invoices</router-link>
-            <router-link to="/sales-payments" :class="{ 'router-link-active': isActiveModule('/sales-payments') }">Sales Payments</router-link>
-          </nav>
-          <StockCheckModal />
-          <CompanySwitcher />
-        </div>
-      </el-header>
-      <el-main class="app-main">
-        <router-view />
-      </el-main>
+      <AppSidebar />
+      <el-container class="app-body">
+        <el-header class="app-header" height="64px">
+          <div class="app-header-inner">
+            <NavSearch />
+            <div class="app-header-actions">
+              <StockCheckModal />
+              <UserAvatar />
+            </div>
+          </div>
+        </el-header>
+        <TabBar />
+        <el-main class="app-main">
+          <router-view v-slot="{ Component, route }">
+            <keep-alive :max="20">
+              <component :is="Component" :key="route.fullPath" />
+            </keep-alive>
+          </router-view>
+        </el-main>
+      </el-container>
     </el-container>
   </el-config-provider>
 </template>

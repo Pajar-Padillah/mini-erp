@@ -10,6 +10,7 @@ import InvoiceAllocationPicker, { type AllocationRow } from '../../components/In
 import PageHeader from '../../components/PageHeader.vue'
 import { formatMoney } from '../../utils/format'
 import type { SalesInvoice } from '../../types/salesInvoice'
+import { useTabsStore } from '../../stores/tabsStore'
 
 const props = defineProps<{ id?: string }>()
 const isEdit = !!props.id
@@ -17,6 +18,11 @@ const isEdit = !!props.id
 const route = useRoute()
 const router = useRouter()
 const companyStore = useCompanyStore()
+const tabsStore = useTabsStore()
+
+function closeTab() {
+  tabsStore.closeTab(route.fullPath, router)
+}
 const submitting = ref(false)
 const pendingAction = ref<'draft' | 'submit' | 'save' | null>(null)
 const loading = ref(isEdit)
@@ -190,7 +196,7 @@ async function submit(thenSubmit = false) {
       <InvoiceAllocationPicker :rows="rows" v-model="amountByInvoice" />
 
       <div class="form-footer">
-        <el-button @click="router.back()">Cancel</el-button>
+        <el-button @click="closeTab">Cancel</el-button>
         <template v-if="isEdit">
           <el-button type="primary" :loading="submitting" @click="submit()">Save Changes</el-button>
         </template>

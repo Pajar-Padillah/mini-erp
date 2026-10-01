@@ -1,15 +1,22 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeft } from '@element-plus/icons-vue'
+import { useTabsStore } from '../stores/tabsStore'
 
 defineProps<{ title: string; subtitle?: string; breadcrumb?: { label: string; to: string }; showBack?: boolean }>()
+const route = useRoute()
 const router = useRouter()
+const tabsStore = useTabsStore()
+
+function goBack() {
+  tabsStore.closeTab(route.fullPath, router)
+}
 </script>
 
 <template>
   <div class="page-header">
     <div class="page-header-left">
-      <el-button v-if="showBack" class="page-back-btn" :icon="ArrowLeft" circle @click="router.back()" />
+      <el-button v-if="showBack" class="page-back-btn" :icon="ArrowLeft" circle @click="goBack" />
       <div>
         <div v-if="breadcrumb" class="page-breadcrumb">
           <router-link :to="breadcrumb.to">{{ breadcrumb.label }}</router-link>

@@ -50,33 +50,35 @@ const filtered = computed(() => {
       </template>
     </PageHeader>
 
-    <div class="filter-bar">
-      <el-input v-model="search" placeholder="Search by payment no..." clearable style="width: 280px" />
-      <el-select v-model="statusFilter" placeholder="Filter by status" clearable style="width: 180px">
-        <el-option label="DRAFT" value="DRAFT" />
-        <el-option label="SUBMITTED" value="SUBMITTED" />
-      </el-select>
+    <div class="card">
+      <div class="filter-bar">
+        <el-input v-model="search" placeholder="Search by payment no..." clearable style="width: 280px" />
+        <el-select v-model="statusFilter" placeholder="Filter by status" clearable style="width: 180px">
+          <el-option label="DRAFT" value="DRAFT" />
+          <el-option label="SUBMITTED" value="SUBMITTED" />
+        </el-select>
+      </div>
+
+      <el-table
+        :data="filtered"
+        v-loading="store.loading"
+        row-class-name="clickable-row"
+        @row-click="(row: any) => router.push({ name: 'sales-payments-detail', params: { id: row.id } })"
+      >
+        <el-table-column prop="payment_no" label="Payment No" min-width="200" />
+        <el-table-column label="Date" width="120">
+          <template #default="{ row }">{{ row.payment_date?.slice(0, 10) }}</template>
+        </el-table-column>
+        <el-table-column prop="payment_method" label="Method" min-width="160" />
+        <el-table-column label="Total" width="160">
+          <template #default="{ row }">{{ formatMoney(row.total_amount) }}</template>
+        </el-table-column>
+        <el-table-column label="Status" width="140">
+          <template #default="{ row }"><StatusTag :status="row.document_status" /></template>
+        </el-table-column>
+      </el-table>
+
+      <PaginationBar v-if="store.meta" v-model:page="page" :page-size="pageSize" :total="store.meta.total_items" />
     </div>
-
-    <el-table
-      :data="filtered"
-      v-loading="store.loading"
-      row-class-name="clickable-row"
-      @row-click="(row: any) => router.push({ name: 'sales-payments-detail', params: { id: row.id } })"
-    >
-      <el-table-column prop="payment_no" label="Payment No" min-width="200" />
-      <el-table-column label="Date" width="120">
-        <template #default="{ row }">{{ row.payment_date?.slice(0, 10) }}</template>
-      </el-table-column>
-      <el-table-column prop="payment_method" label="Method" min-width="160" />
-      <el-table-column label="Total" width="160">
-        <template #default="{ row }">{{ formatMoney(row.total_amount) }}</template>
-      </el-table-column>
-      <el-table-column label="Status" width="140">
-        <template #default="{ row }"><StatusTag :status="row.document_status" /></template>
-      </el-table-column>
-    </el-table>
-
-    <PaginationBar v-if="store.meta" v-model:page="page" :page-size="pageSize" :total="store.meta.total_items" />
   </div>
 </template>

@@ -50,35 +50,37 @@ const filtered = computed(() => {
       </template>
     </PageHeader>
 
-    <div class="filter-bar">
-      <el-input v-model="search" placeholder="Search by order no or customer..." clearable style="width: 280px" />
-      <el-select v-model="statusFilter" placeholder="Filter by status" clearable style="width: 180px">
-        <el-option label="DRAFT" value="DRAFT" />
-        <el-option label="ACTIVE" value="ACTIVE" />
-        <el-option label="PROCESSED" value="PROCESSED" />
-        <el-option label="COMPLETED" value="COMPLETED" />
-      </el-select>
+    <div class="card">
+      <div class="filter-bar">
+        <el-input v-model="search" placeholder="Search by order no or customer..." clearable style="width: 280px" />
+        <el-select v-model="statusFilter" placeholder="Filter by status" clearable style="width: 180px">
+          <el-option label="DRAFT" value="DRAFT" />
+          <el-option label="ACTIVE" value="ACTIVE" />
+          <el-option label="PROCESSED" value="PROCESSED" />
+          <el-option label="COMPLETED" value="COMPLETED" />
+        </el-select>
+      </div>
+
+      <el-table
+        :data="filtered"
+        v-loading="store.loading"
+        row-class-name="clickable-row"
+        @row-click="(row: any) => router.push({ name: 'sales-orders-detail', params: { id: row.id } })"
+      >
+        <el-table-column prop="order_no" label="Order No" min-width="180" />
+        <el-table-column prop="customer_name" label="Customer" min-width="200" />
+        <el-table-column prop="order_date" label="Date" width="120">
+          <template #default="{ row }">{{ row.order_date?.slice(0, 10) }}</template>
+        </el-table-column>
+        <el-table-column label="Total" width="160">
+          <template #default="{ row }">{{ formatMoney(row.total_amount) }}</template>
+        </el-table-column>
+        <el-table-column label="Status" width="140">
+          <template #default="{ row }"><StatusTag :status="row.document_status" /></template>
+        </el-table-column>
+      </el-table>
+
+      <PaginationBar v-if="store.meta" v-model:page="page" :page-size="pageSize" :total="store.meta.total_items" />
     </div>
-
-    <el-table
-      :data="filtered"
-      v-loading="store.loading"
-      row-class-name="clickable-row"
-      @row-click="(row: any) => router.push({ name: 'sales-orders-detail', params: { id: row.id } })"
-    >
-      <el-table-column prop="order_no" label="Order No" min-width="180" />
-      <el-table-column prop="customer_name" label="Customer" min-width="200" />
-      <el-table-column prop="order_date" label="Date" width="120">
-        <template #default="{ row }">{{ row.order_date?.slice(0, 10) }}</template>
-      </el-table-column>
-      <el-table-column label="Total" width="160">
-        <template #default="{ row }">{{ formatMoney(row.total_amount) }}</template>
-      </el-table-column>
-      <el-table-column label="Status" width="140">
-        <template #default="{ row }"><StatusTag :status="row.document_status" /></template>
-      </el-table-column>
-    </el-table>
-
-    <PaginationBar v-if="store.meta" v-model:page="page" :page-size="pageSize" :total="store.meta.total_items" />
   </div>
 </template>
