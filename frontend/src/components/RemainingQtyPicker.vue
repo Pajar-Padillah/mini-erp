@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { formatMoney, formatQty } from '../utils/format'
+
+const { t } = useI18n()
 
 export interface PickerRow {
   sourceItemId: number
@@ -28,12 +31,12 @@ const grandTotal = computed(() => props.rows.reduce((sum, row) => sum + rowTotal
 
 <template>
   <div>
-    <el-table :data="rows" size="small" border empty-text="Nothing left to pull -- every line has already been fully pulled.">
-      <el-table-column prop="productName" label="Product" />
-      <el-table-column label="Remaining" width="140">
+    <el-table :data="rows" size="small" border :empty-text="t('pickers.remainingEmpty')">
+      <el-table-column prop="productName" :label="t('common.product')" />
+      <el-table-column :label="t('common.remaining')" width="140">
         <template #default="{ row }">{{ formatQty(row.available) }}</template>
       </el-table-column>
-      <el-table-column label="Qty" width="180">
+      <el-table-column :label="t('common.qty')" width="180">
         <template #default="{ row }">
           <el-input-number
             :model-value="Number(modelValue[row.sourceItemId] ?? 0)"
@@ -47,16 +50,16 @@ const grandTotal = computed(() => props.rows.reduce((sum, row) => sum + rowTotal
           />
         </template>
       </el-table-column>
-      <el-table-column v-if="hasPrice" label="Price" width="160" align="right">
+      <el-table-column v-if="hasPrice" :label="t('common.price')" width="160" align="right">
         <template #default="{ row }">{{ formatMoney(row.unitPrice ?? 0) }}</template>
       </el-table-column>
-      <el-table-column v-if="hasPrice" label="Total" width="160" align="right">
+      <el-table-column v-if="hasPrice" :label="t('common.total')" width="160" align="right">
         <template #default="{ row }">{{ formatMoney(rowTotal(row)) }}</template>
       </el-table-column>
     </el-table>
 
     <div v-if="hasPrice" class="grand-total">
-      <span class="grand-total-label">Grand Total</span>
+      <span class="grand-total-label">{{ t('pickers.grandTotal') }}</span>
       <span class="grand-total-value">{{ formatMoney(grandTotal) }}</span>
     </div>
   </div>

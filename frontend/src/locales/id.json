@@ -1,0 +1,255 @@
+{
+  "nav": {
+    "salesOrders": "Pesanan Penjualan",
+    "salesDeliveries": "Pengiriman Penjualan",
+    "salesInvoices": "Faktur Penjualan",
+    "salesPayments": "Pembayaran Penjualan"
+  },
+  "common": {
+    "cancel": "Batal",
+    "edit": "Ubah",
+    "delete": "Hapus",
+    "submit": "Ajukan",
+    "unsubmit": "Batalkan Pengajuan",
+    "createDraft": "Buat Draf",
+    "createAndSubmit": "Buat & Ajukan",
+    "saveChanges": "Simpan Perubahan",
+    "addRow": "Tambah Baris",
+    "deleteRow": "Hapus baris",
+    "optional": "Opsional",
+    "notes": "Catatan",
+    "items": "Item",
+    "product": "Produk",
+    "qty": "Qty",
+    "price": "Harga",
+    "total": "Total",
+    "grandTotal": "Total Keseluruhan",
+    "date": "Tanggal",
+    "status": "Status",
+    "remaining": "Sisa",
+    "filterByStatus": "Filter berdasarkan status",
+    "selectCompanyFirst": "Pilih perusahaan terlebih dahulu",
+    "confirmSubmitTitle": "Konfirmasi Pengajuan",
+    "confirmUnsubmitTitle": "Konfirmasi Batalkan Pengajuan",
+    "confirmTitle": "Konfirmasi"
+  },
+  "appearance": {
+    "settings": "Pengaturan tampilan",
+    "themeColor": "Warna tema",
+    "mode": "Mode",
+    "light": "Terang",
+    "dark": "Gelap"
+  },
+  "locale": {
+    "settings": "Bahasa",
+    "en": "English",
+    "id": "Bahasa Indonesia"
+  },
+  "company": {
+    "placeholder": "Pilih perusahaan"
+  },
+  "stockCheck": {
+    "button": "Cek Stok",
+    "title": "Cek Stok",
+    "searchPlaceholder": "Cari berdasarkan nama produk atau SKU...",
+    "product": "Produk",
+    "brand": "Merek",
+    "sku": "SKU",
+    "qtyOnHand": "Qty Tersedia"
+  },
+  "pagination": {
+    "showing": "Menampilkan {from}–{to} dari {total}",
+    "previous": "Sebelumnya",
+    "next": "Selanjutnya",
+    "page": "Halaman {page} dari {totalPages}"
+  },
+  "pickers": {
+    "invoice": "Faktur",
+    "outstanding": "Sisa Tagihan",
+    "allocateAmount": "Jumlah alokasi",
+    "totalAllocated": "Total Teralokasi",
+    "remainingEmpty": "Tidak ada lagi yang bisa diambil -- semua baris sudah diambil penuh.",
+    "grandTotal": "Total Keseluruhan"
+  },
+  "salesOrders": {
+    "list": {
+      "title": "Pesanan Penjualan",
+      "subtitle": "Kelola pesanan penjualan beserta progres pengiriman/faktur/pembayarannya.",
+      "newButton": "+ Pesanan Baru",
+      "searchPlaceholder": "Cari berdasarkan no. pesanan atau pelanggan...",
+      "orderNo": "No. Pesanan",
+      "customer": "Pelanggan"
+    },
+    "form": {
+      "titleNew": "Pesanan Penjualan Baru",
+      "titleEdit": "Ubah Pesanan Penjualan",
+      "subtitleNew": "Buat pesanan sebagai draf, lalu ajukan agar menjadi aktif.",
+      "subtitleEdit": "Hanya pesanan berstatus DRAFT yang dapat diubah.",
+      "breadcrumb": "Pesanan Penjualan",
+      "customer": "Pelanggan",
+      "customerPlaceholder": "cth. Toko Kosmetik Sukses Mandiri",
+      "orderDate": "Tanggal Pesanan",
+      "productPlaceholder": "Pilih produk",
+      "onlyDraftEditable": "Hanya pesanan berstatus DRAFT yang dapat diubah",
+      "selectProductForEveryLine": "Pilih produk untuk setiap baris",
+      "confirmSubmitMessage": "Buat dan ajukan pesanan ini? Statusnya akan menjadi ACTIVE dan siap untuk dikirim.",
+      "created": "{no} berhasil dibuat",
+      "createdAndSubmitted": "{no} berhasil dibuat dan diajukan",
+      "createdDraftSubmitFailed": "{no} dibuat sebagai draf, tetapi pengajuan gagal: {error}",
+      "updated": "{no} berhasil diperbarui"
+    },
+    "detail": {
+      "breadcrumb": "Pesanan Penjualan",
+      "createDelivery": "Buat Pengiriman",
+      "confirmSubmitMessage": "Ajukan pesanan ini? Statusnya akan menjadi ACTIVE dan siap untuk dikirim.",
+      "submitted": "Pesanan diajukan — kini ACTIVE",
+      "confirmUnsubmitMessage": "Batalkan pengajuan pesanan ini? Statusnya akan kembali ke DRAFT.",
+      "unsubmitted": "Pengajuan pesanan dibatalkan — kembali ke DRAFT",
+      "confirmDeleteMessage": "Hapus pesanan berstatus DRAFT ini?",
+      "deleted": "Pesanan berhasil dihapus",
+      "customer": "Pelanggan",
+      "orderDate": "Tanggal Pesanan",
+      "company": "Perusahaan",
+      "qtyOrdered": "Qty Dipesan"
+    }
+  },
+  "salesDeliveries": {
+    "list": {
+      "title": "Pengiriman Penjualan",
+      "subtitle": "Pengiriman yang diambil dari pesanan penjualan. Stok dikurangi saat diajukan.",
+      "newButton": "+ Pengiriman Baru",
+      "searchPlaceholder": "Cari berdasarkan no. pengiriman...",
+      "deliveryNo": "No. Pengiriman",
+      "salesOrder": "Pesanan Penjualan"
+    },
+    "form": {
+      "titleNew": "Pengiriman Penjualan Baru",
+      "titleEdit": "Ubah Pengiriman Penjualan",
+      "subtitleNew": "Ambil kuantitas dari pesanan penjualan yang sudah ada.",
+      "subtitleEdit": "Hanya pengiriman berstatus DRAFT yang dapat diubah.",
+      "breadcrumb": "Pengiriman",
+      "salesOrder": "Pesanan Penjualan",
+      "salesOrderPlaceholder": "Pilih pesanan penjualan",
+      "deliveryDate": "Tanggal Pengiriman",
+      "onlyDraftEditable": "Hanya pengiriman berstatus DRAFT yang dapat diubah",
+      "selectOrderFirst": "Pilih pesanan penjualan terlebih dahulu",
+      "enterAtLeastOneQty": "Masukkan setidaknya satu kuantitas untuk dikirim",
+      "confirmSubmitMessage": "Buat dan ajukan pengiriman ini? Stok akan dikurangi.",
+      "pullQuantities": "Ambil kuantitas dari baris pesanan",
+      "created": "{no} berhasil dibuat",
+      "createdAndSubmitted": "{no} berhasil dibuat dan diajukan",
+      "createdDraftSubmitFailed": "{no} dibuat sebagai draf, tetapi pengajuan gagal: {error}",
+      "updated": "{no} berhasil diperbarui"
+    },
+    "detail": {
+      "breadcrumb": "Pengiriman",
+      "createInvoice": "Buat Faktur",
+      "fromOrder": "Dari {orderNo}",
+      "fromOrderFallback": "pesanan #{id}",
+      "confirmSubmitMessage": "Ajukan pengiriman ini? Stok akan dikurangi.",
+      "submitted": "Pengiriman diajukan — stok telah dikurangi",
+      "confirmUnsubmitMessage": "Batalkan pengajuan pengiriman ini? Stok akan dikembalikan.",
+      "unsubmitted": "Pengajuan pengiriman dibatalkan — stok dikembalikan",
+      "confirmDeleteMessage": "Hapus pengiriman berstatus DRAFT ini?",
+      "deleted": "Pengiriman berhasil dihapus",
+      "salesOrder": "Pesanan Penjualan",
+      "deliveryDate": "Tanggal Pengiriman",
+      "qtyDelivered": "Qty Dikirim",
+      "remainingToInvoice": "Sisa (untuk difaktur)"
+    }
+  },
+  "salesInvoices": {
+    "list": {
+      "title": "Faktur Penjualan",
+      "subtitle": "Document Status melacak progres alokasi pembayaran; Payment Status melacak jumlah yang sudah dibayar.",
+      "newButton": "+ Faktur Baru",
+      "searchPlaceholder": "Cari berdasarkan no. faktur...",
+      "documentStatus": "Status dokumen",
+      "paymentStatus": "Status pembayaran",
+      "invoiceNo": "No. Faktur",
+      "salesDelivery": "Pengiriman Penjualan",
+      "paid": "Dibayar"
+    },
+    "form": {
+      "titleNew": "Faktur Penjualan Baru",
+      "titleEdit": "Ubah Faktur Penjualan",
+      "subtitleNew": "Ambil kuantitas dari pengiriman penjualan yang sudah ada.",
+      "subtitleEdit": "Hanya faktur berstatus DRAFT yang dapat diubah.",
+      "breadcrumb": "Faktur",
+      "salesDelivery": "Pengiriman Penjualan",
+      "salesDeliveryPlaceholder": "Pilih pengiriman penjualan",
+      "invoiceDate": "Tanggal Faktur",
+      "onlyDraftEditable": "Hanya faktur berstatus DRAFT yang dapat diubah",
+      "couldNotDetermineSourceDelivery": "Tidak dapat menentukan pengiriman sumber untuk faktur ini",
+      "selectDeliveryFirst": "Pilih pengiriman penjualan terlebih dahulu",
+      "enterAtLeastOneQty": "Masukkan setidaknya satu kuantitas untuk difaktur",
+      "confirmSubmitMessage": "Buat dan ajukan faktur ini? Statusnya akan menjadi ACTIVE dan siap untuk pembayaran.",
+      "pullQuantities": "Ambil kuantitas dari baris pengiriman",
+      "created": "{no} berhasil dibuat",
+      "createdAndSubmitted": "{no} berhasil dibuat dan diajukan",
+      "createdDraftSubmitFailed": "{no} dibuat sebagai draf, tetapi pengajuan gagal: {error}",
+      "updated": "{no} berhasil diperbarui"
+    },
+    "detail": {
+      "breadcrumb": "Faktur",
+      "subtitle": "Document Status melacak progres alokasi pembayaran. Payment Status melacak jumlah yang benar-benar sudah dibayar — dua kolom yang independen.",
+      "createPayment": "Buat Pembayaran",
+      "confirmSubmitMessage": "Ajukan faktur ini? Statusnya akan menjadi ACTIVE dan siap untuk pembayaran.",
+      "submitted": "Faktur diajukan — kini ACTIVE",
+      "confirmUnsubmitMessage": "Batalkan pengajuan faktur ini? Statusnya akan kembali ke DRAFT.",
+      "unsubmitted": "Pengajuan faktur dibatalkan — kembali ke DRAFT",
+      "confirmDeleteMessage": "Hapus faktur berstatus DRAFT ini?",
+      "deleted": "Faktur berhasil dihapus",
+      "salesDelivery": "Pengiriman Penjualan",
+      "paid": "Dibayar",
+      "outstanding": "Sisa Tagihan",
+      "invoiceDate": "Tanggal Faktur"
+    }
+  },
+  "salesPayments": {
+    "list": {
+      "title": "Pembayaran Penjualan",
+      "subtitle": "Catat pembayaran dan alokasikan ke satu atau beberapa faktur.",
+      "newButton": "+ Pembayaran Baru",
+      "searchPlaceholder": "Cari berdasarkan no. pembayaran...",
+      "paymentNo": "No. Pembayaran",
+      "method": "Metode"
+    },
+    "form": {
+      "titleNew": "Pembayaran Penjualan Baru",
+      "titleEdit": "Ubah Pembayaran Penjualan",
+      "subtitleNew": "Alokasikan satu pembayaran ke satu atau beberapa faktur.",
+      "subtitleEdit": "Hanya pembayaran berstatus DRAFT yang dapat diubah.",
+      "breadcrumb": "Pembayaran",
+      "paymentDate": "Tanggal Pembayaran",
+      "method": "Metode",
+      "methodPlaceholder": "cth. TRANSFER",
+      "invoices": "Faktur",
+      "invoicesPlaceholder": "Pilih satu atau beberapa faktur",
+      "invoiceOption": "{no} — sisa tagihan {amount}",
+      "onlyDraftEditable": "Hanya pembayaran berstatus DRAFT yang dapat diubah",
+      "enterAtLeastOneAllocation": "Masukkan setidaknya satu jumlah alokasi",
+      "confirmSubmitMessage": "Buat dan ajukan pembayaran ini? Pembayaran akan dialokasikan ke faktur yang dipilih.",
+      "allocateToInvoices": "Alokasikan ke faktur",
+      "created": "{no} berhasil dibuat",
+      "createdAndSubmitted": "{no} berhasil dibuat dan diajukan",
+      "createdDraftSubmitFailed": "{no} dibuat sebagai draf, tetapi pengajuan gagal: {error}",
+      "updated": "{no} berhasil diperbarui"
+    },
+    "detail": {
+      "breadcrumb": "Pembayaran",
+      "subtitle": "Pembayaran dapat dialokasikan ke beberapa faktur.",
+      "confirmSubmitMessage": "Ajukan pembayaran ini? Pembayaran akan dialokasikan ke faktur yang dipilih.",
+      "submitted": "Pembayaran diajukan — dialokasikan ke faktur",
+      "confirmUnsubmitMessage": "Batalkan pengajuan pembayaran ini? Alokasinya akan dibatalkan.",
+      "unsubmitted": "Pengajuan pembayaran dibatalkan — alokasi dibatalkan",
+      "confirmDeleteMessage": "Hapus pembayaran berstatus DRAFT ini?",
+      "deleted": "Pembayaran berhasil dihapus",
+      "paymentDate": "Tanggal Pembayaran",
+      "method": "Metode",
+      "allocations": "Alokasi",
+      "invoice": "Faktur",
+      "amount": "Jumlah"
+    }
+  }
+}

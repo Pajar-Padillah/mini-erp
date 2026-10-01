@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { salesInvoiceApi } from '../../api/salesInvoiceApi'
@@ -14,6 +15,7 @@ import type { SalesInvoice } from '../../types/salesInvoice'
 const props = defineProps<{ id?: string }>()
 const isEdit = !!props.id
 
+const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const companyStore = useCompanyStore()
@@ -46,7 +48,7 @@ onMounted(async () => {
     try {
       const payment = await salesPaymentApi.get(Number(props.id))
       if (payment.document_status !== 'DRAFT') {
-        ElMessage.warning('Only DRAFT payments can be edited')
+        ElMessage.warning(t('salesPayments.form.onlyDraftEditable'))
         router.replace({ name: 'sales-payments-detail', params: { id: props.id } })
         return
       }
@@ -92,14 +94,14 @@ async function createPayment(allocations: { sales_invoice_id: number; amount: st
     allocations,
   })
   if (!thenSubmit) {
-    ElMessage.success(`Created ${payment.payment_no}`)
+    ElMessage.success(t('salesPayments.form.created', { no: payment.payment_no }))
     return payment
   }
   try {
     payment = await salesPaymentApi.submit(payment.id)
-    ElMessage.success(`Created and submitted ${payment.payment_no}`)
+    ElMessage.success(t('salesPayments.form.createdAndSubmitted', { no: payment.payment_no }))
   } catch (err) {
-    ElMessage.warning(`Created ${payment.payment_no} as a draft, but submit failed: ${apiErrorMessage(err)}`)
+    ElMessage.warning(t('salesPayments.form.createdDraftSubmitFailed', { no: payment.payment_no, error: apiErrorMessage(err) }))
   }
   return payment
 }
@@ -115,16 +117,16 @@ async function submit(thenSubmit = false) {
     .filter(([id, amt]) => Number(amt) > 0 && selectedInvoiceIds.value.includes(Number(id)))
     .map(([invoiceId, amount]) => ({ sales_invoice_id: Number(invoiceId), amount }))
   if (allocations.length === 0) {
-    ElMessage.warning('Enter at least one allocation amount')
+    ElMessage.warning(t('salesPayments.form.enterAtLeastOneAllocation'))
     return
   }
   if (!isEdit && !companyStore.selectedCompanyId) {
-    ElMessage.warning('Select a company first')
+    ElMessage.warning(t('common.selectCompanyFirst'))
     return
   }
   if (thenSubmit) {
     try {
-      await ElMessageBox.confirm('Create and submit this payment? It will be allocated to the selected invoice(s).', 'Confirm Submit', { type: 'warning' })
+      await ElMessageBox.confirm(t('salesPayments.form.confirmSubmitMessage'), t('common.confirmSubmitTitle'), { type: 'warning' })
     } catch {
       return
     }
@@ -139,7 +141,7 @@ async function submit(thenSubmit = false) {
         notes: form.notes,
         allocations,
       })
-      ElMessage.success(`Updated ${payment.payment_no}`)
+      ElMessage.success(t('salesPayments.form.updated', { no: payment.payment_no }))
       router.push({ name: 'sales-payments-detail', params: { id: payment.id } })
     } else {
       const payment = await createPayment(allocations, thenSubmit)
@@ -157,47 +159,47 @@ async function submit(thenSubmit = false) {
 <template>
   <div class="page">
     <PageHeader
-      :title="isEdit ? 'Edit Sales Payment' : 'New Sales Payment'"
-      :subtitle="isEdit ? 'Only DRAFT payments can be edited.' : 'Allocate one payment across one or more invoices.'"
-      :breadcrumb="{ label: 'Payments', to: '/sales-payments' }"
+      :title="isEdit ? t('salesPayments.form.titleEdit') : t('salesPayments.form.titleNew')"
+      :subtitle="isEdit ? t('salesPayments.form.subtitleEdit') : t('salesPayments.form.subtitleNew')"
+      :breadcrumb="{ label: t('salesPayments.form.breadcrumb'), to: '/sales-payments' }"
       show-back
     />
 
     <div class="card" v-loading="loading">
       <el-form label-position="top" class="form-grid">
-        <el-form-item label="Payment Date">
+        <el-form-item :label="t('salesPayments.form.paymentDate')">
           <el-date-picker v-model="form.payment_date" type="date" value-format="YYYY-MM-DD" style="width: 100%" />
         </el-form-item>
-        <el-form-item label="Method">
-          <el-input v-model="form.payment_method" placeholder="e.g. TRANSFER" />
+        <el-form-item :label="t('salesPayments.form.method')">
+          <el-input v-model="form.payment_method" :placeholder="t('salesPayments.form.methodPlaceholder')" />
         </el-form-item>
-        <el-form-item label="Invoices" class="span-2">
-          <el-select v-model="selectedInvoiceIds" multiple filterable placeholder="Select one or more invoices" style="width: 100%">
+        <el-form-item :label="t('salesPayments.form.invoices')" class="span-2">
+          <el-select v-model="selectedInvoiceIds" multiple filterable :placeholder="t('salesPayments.form.invoicesPlaceholder')" style="width: 100%">
             <el-option
               v-for="inv in availableInvoices"
               :key="inv.id"
-              :label="`${inv.invoice_no} — outstanding ${formatMoney(String(Number(inv.total_amount) - Number(inv.paid_amount)))}`"
+              :label="t('salesPayments.form.invoiceOption', { no: inv.invoice_no, amount: formatMoney(String(Number(inv.total_amount) - Number(inv.paid_amount))) })"
               :value="inv.id"
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="Notes" class="span-2">
-          <el-input v-model="form.notes" type="textarea" :rows="1" placeholder="Optional" />
+        <el-form-item :label="t('common.notes')" class="span-2">
+          <el-input v-model="form.notes" type="textarea" :rows="1" :placeholder="t('common.optional')" />
         </el-form-item>
       </el-form>
 
-      <div class="section-title">Allocate to invoices</div>
+      <div class="section-title">{{ t('salesPayments.form.allocateToInvoices') }}</div>
       <InvoiceAllocationPicker :rows="rows" v-model="amountByInvoice" />
 
       <div class="form-footer">
-        <el-button @click="router.back()">Cancel</el-button>
+        <el-button @click="router.back()">{{ t('common.cancel') }}</el-button>
         <template v-if="isEdit">
-          <el-button type="primary" :loading="submitting" @click="submit()">Save Changes</el-button>
+          <el-button type="primary" :loading="submitting" @click="submit()">{{ t('common.saveChanges') }}</el-button>
         </template>
         <template v-else>
-          <el-button type="warning" plain :loading="pendingAction === 'draft'" :disabled="submitting" @click="submit(false)">Create Draft</el-button>
+          <el-button type="warning" plain :loading="pendingAction === 'draft'" :disabled="submitting" @click="submit(false)">{{ t('common.createDraft') }}</el-button>
           <el-button type="primary" :loading="pendingAction === 'submit'" :disabled="submitting" @click="submit(true)">
-            Create &amp; Submit
+            {{ t('common.createAndSubmit') }}
           </el-button>
         </template>
       </div>

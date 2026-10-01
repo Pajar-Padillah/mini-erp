@@ -1,0 +1,255 @@
+{
+  "nav": {
+    "salesOrders": "Sales Orders",
+    "salesDeliveries": "Sales Deliveries",
+    "salesInvoices": "Sales Invoices",
+    "salesPayments": "Sales Payments"
+  },
+  "common": {
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "submit": "Submit",
+    "unsubmit": "Unsubmit",
+    "createDraft": "Create Draft",
+    "createAndSubmit": "Create & Submit",
+    "saveChanges": "Save Changes",
+    "addRow": "Add Row",
+    "deleteRow": "Delete row",
+    "optional": "Optional",
+    "notes": "Notes",
+    "items": "Items",
+    "product": "Product",
+    "qty": "Qty",
+    "price": "Price",
+    "total": "Total",
+    "grandTotal": "Grand Total",
+    "date": "Date",
+    "status": "Status",
+    "remaining": "Remaining",
+    "filterByStatus": "Filter by status",
+    "selectCompanyFirst": "Select a company first",
+    "confirmSubmitTitle": "Confirm Submit",
+    "confirmUnsubmitTitle": "Confirm Unsubmit",
+    "confirmTitle": "Confirm"
+  },
+  "appearance": {
+    "settings": "Appearance settings",
+    "themeColor": "Theme color",
+    "mode": "Mode",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "locale": {
+    "settings": "Language",
+    "en": "English",
+    "id": "Bahasa Indonesia"
+  },
+  "company": {
+    "placeholder": "Select company"
+  },
+  "stockCheck": {
+    "button": "Check Stock",
+    "title": "Check Stock",
+    "searchPlaceholder": "Search by product name or SKU...",
+    "product": "Product",
+    "brand": "Brand",
+    "sku": "SKU",
+    "qtyOnHand": "Qty on Hand"
+  },
+  "pagination": {
+    "showing": "Showing {from}–{to} of {total}",
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page {page} of {totalPages}"
+  },
+  "pickers": {
+    "invoice": "Invoice",
+    "outstanding": "Outstanding",
+    "allocateAmount": "Allocate amount",
+    "totalAllocated": "Total Allocated",
+    "remainingEmpty": "Nothing left to pull -- every line has already been fully pulled.",
+    "grandTotal": "Grand Total"
+  },
+  "salesOrders": {
+    "list": {
+      "title": "Sales Orders",
+      "subtitle": "Manage sales orders and their delivery/invoice/payment progress.",
+      "newButton": "+ New Sales Order",
+      "searchPlaceholder": "Search by order no or customer...",
+      "orderNo": "Order No",
+      "customer": "Customer"
+    },
+    "form": {
+      "titleNew": "New Sales Order",
+      "titleEdit": "Edit Sales Order",
+      "subtitleNew": "Create a draft order, then submit it to make it active.",
+      "subtitleEdit": "Only DRAFT orders can be edited.",
+      "breadcrumb": "Sales Orders",
+      "customer": "Customer",
+      "customerPlaceholder": "e.g. Toko Kosmetik Sukses Mandiri",
+      "orderDate": "Order Date",
+      "productPlaceholder": "Select product",
+      "onlyDraftEditable": "Only DRAFT orders can be edited",
+      "selectProductForEveryLine": "Select a product for every line",
+      "confirmSubmitMessage": "Create and submit this order? It will become ACTIVE and ready for delivery.",
+      "created": "Created {no}",
+      "createdAndSubmitted": "Created and submitted {no}",
+      "createdDraftSubmitFailed": "Created {no} as a draft, but submit failed: {error}",
+      "updated": "Updated {no}"
+    },
+    "detail": {
+      "breadcrumb": "Sales Orders",
+      "createDelivery": "Create Delivery",
+      "confirmSubmitMessage": "Submit this order? It will become ACTIVE and ready for delivery.",
+      "submitted": "Order submitted — now ACTIVE",
+      "confirmUnsubmitMessage": "Unsubmit this order? It will go back to DRAFT.",
+      "unsubmitted": "Order unsubmitted — back to DRAFT",
+      "confirmDeleteMessage": "Delete this DRAFT order?",
+      "deleted": "Order deleted",
+      "customer": "Customer",
+      "orderDate": "Order Date",
+      "company": "Company",
+      "qtyOrdered": "Qty Ordered"
+    }
+  },
+  "salesDeliveries": {
+    "list": {
+      "title": "Sales Deliveries",
+      "subtitle": "Deliveries pulled from sales orders. Stock is deducted on submit.",
+      "newButton": "+ New Delivery",
+      "searchPlaceholder": "Search by delivery no...",
+      "deliveryNo": "Delivery No",
+      "salesOrder": "Sales Order"
+    },
+    "form": {
+      "titleNew": "New Sales Delivery",
+      "titleEdit": "Edit Sales Delivery",
+      "subtitleNew": "Pull quantities from an existing sales order.",
+      "subtitleEdit": "Only DRAFT deliveries can be edited.",
+      "breadcrumb": "Deliveries",
+      "salesOrder": "Sales Order",
+      "salesOrderPlaceholder": "Select a sales order",
+      "deliveryDate": "Delivery Date",
+      "onlyDraftEditable": "Only DRAFT deliveries can be edited",
+      "selectOrderFirst": "Select a sales order first",
+      "enterAtLeastOneQty": "Enter at least one quantity to deliver",
+      "confirmSubmitMessage": "Create and submit this delivery? Stock will be deducted.",
+      "pullQuantities": "Pull quantities from order rows",
+      "created": "Created {no}",
+      "createdAndSubmitted": "Created and submitted {no}",
+      "createdDraftSubmitFailed": "Created {no} as a draft, but submit failed: {error}",
+      "updated": "Updated {no}"
+    },
+    "detail": {
+      "breadcrumb": "Deliveries",
+      "createInvoice": "Create Invoice",
+      "fromOrder": "From {orderNo}",
+      "fromOrderFallback": "order #{id}",
+      "confirmSubmitMessage": "Submit this delivery? Stock will be deducted.",
+      "submitted": "Delivery submitted — stock deducted",
+      "confirmUnsubmitMessage": "Unsubmit this delivery? Stock will be restored.",
+      "unsubmitted": "Delivery unsubmitted — stock restored",
+      "confirmDeleteMessage": "Delete this DRAFT delivery?",
+      "deleted": "Delivery deleted",
+      "salesOrder": "Sales Order",
+      "deliveryDate": "Delivery Date",
+      "qtyDelivered": "Qty Delivered",
+      "remainingToInvoice": "Remaining (to invoice)"
+    }
+  },
+  "salesInvoices": {
+    "list": {
+      "title": "Sales Invoices",
+      "subtitle": "Document Status tracks payment allocation progress; Payment Status tracks how much has been paid.",
+      "newButton": "+ New Invoice",
+      "searchPlaceholder": "Search by invoice no...",
+      "documentStatus": "Document status",
+      "paymentStatus": "Payment status",
+      "invoiceNo": "Invoice No",
+      "salesDelivery": "Sales Delivery",
+      "paid": "Paid"
+    },
+    "form": {
+      "titleNew": "New Sales Invoice",
+      "titleEdit": "Edit Sales Invoice",
+      "subtitleNew": "Pull quantities from an existing sales delivery.",
+      "subtitleEdit": "Only DRAFT invoices can be edited.",
+      "breadcrumb": "Invoices",
+      "salesDelivery": "Sales Delivery",
+      "salesDeliveryPlaceholder": "Select a sales delivery",
+      "invoiceDate": "Invoice Date",
+      "onlyDraftEditable": "Only DRAFT invoices can be edited",
+      "couldNotDetermineSourceDelivery": "Could not determine the source delivery for this invoice",
+      "selectDeliveryFirst": "Select a sales delivery first",
+      "enterAtLeastOneQty": "Enter at least one quantity to invoice",
+      "confirmSubmitMessage": "Create and submit this invoice? It will become ACTIVE and ready for payment.",
+      "pullQuantities": "Pull quantities from delivery lines",
+      "created": "Created {no}",
+      "createdAndSubmitted": "Created and submitted {no}",
+      "createdDraftSubmitFailed": "Created {no} as a draft, but submit failed: {error}",
+      "updated": "Updated {no}"
+    },
+    "detail": {
+      "breadcrumb": "Invoices",
+      "subtitle": "Document Status tracks payment allocation progress. Payment Status tracks how much has actually been paid — two independent fields.",
+      "createPayment": "Create Payment",
+      "confirmSubmitMessage": "Submit this invoice? It will become ACTIVE and ready for payment.",
+      "submitted": "Invoice submitted — now ACTIVE",
+      "confirmUnsubmitMessage": "Unsubmit this invoice? It will go back to DRAFT.",
+      "unsubmitted": "Invoice unsubmitted — back to DRAFT",
+      "confirmDeleteMessage": "Delete this DRAFT invoice?",
+      "deleted": "Invoice deleted",
+      "salesDelivery": "Sales Delivery",
+      "paid": "Paid",
+      "outstanding": "Outstanding",
+      "invoiceDate": "Invoice Date"
+    }
+  },
+  "salesPayments": {
+    "list": {
+      "title": "Sales Payments",
+      "subtitle": "Record payments and allocate them across one or more invoices.",
+      "newButton": "+ New Payment",
+      "searchPlaceholder": "Search by payment no...",
+      "paymentNo": "Payment No",
+      "method": "Method"
+    },
+    "form": {
+      "titleNew": "New Sales Payment",
+      "titleEdit": "Edit Sales Payment",
+      "subtitleNew": "Allocate one payment across one or more invoices.",
+      "subtitleEdit": "Only DRAFT payments can be edited.",
+      "breadcrumb": "Payments",
+      "paymentDate": "Payment Date",
+      "method": "Method",
+      "methodPlaceholder": "e.g. TRANSFER",
+      "invoices": "Invoices",
+      "invoicesPlaceholder": "Select one or more invoices",
+      "invoiceOption": "{no} — outstanding {amount}",
+      "onlyDraftEditable": "Only DRAFT payments can be edited",
+      "enterAtLeastOneAllocation": "Enter at least one allocation amount",
+      "confirmSubmitMessage": "Create and submit this payment? It will be allocated to the selected invoice(s).",
+      "allocateToInvoices": "Allocate to invoices",
+      "created": "Created {no}",
+      "createdAndSubmitted": "Created and submitted {no}",
+      "createdDraftSubmitFailed": "Created {no} as a draft, but submit failed: {error}",
+      "updated": "Updated {no}"
+    },
+    "detail": {
+      "breadcrumb": "Payments",
+      "subtitle": "Payments can allocate across multiple invoices.",
+      "confirmSubmitMessage": "Submit this payment? It will be allocated to the selected invoice(s).",
+      "submitted": "Payment submitted — allocated to invoice(s)",
+      "confirmUnsubmitMessage": "Unsubmit this payment? Its allocations will be reversed.",
+      "unsubmitted": "Payment unsubmitted — allocations reversed",
+      "confirmDeleteMessage": "Delete this DRAFT payment?",
+      "deleted": "Payment deleted",
+      "paymentDate": "Payment Date",
+      "method": "Method",
+      "allocations": "Allocations",
+      "invoice": "Invoice",
+      "amount": "Amount"
+    }
+  }
+}

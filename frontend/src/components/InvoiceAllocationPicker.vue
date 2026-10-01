@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { formatMoney } from '../utils/format'
+
+const { t } = useI18n()
 
 export interface AllocationRow {
   invoiceId: number
@@ -26,11 +29,11 @@ const totalAllocated = computed(() =>
 <template>
   <div>
     <el-table :data="rows" size="small" border>
-      <el-table-column prop="invoiceNo" label="Invoice" width="220" />
-      <el-table-column label="Outstanding" width="160">
+      <el-table-column prop="invoiceNo" :label="t('pickers.invoice')" width="220" />
+      <el-table-column :label="t('pickers.outstanding')" width="160">
         <template #default="{ row }">{{ formatMoney(row.outstanding) }}</template>
       </el-table-column>
-      <el-table-column label="Allocate amount">
+      <el-table-column :label="t('pickers.allocateAmount')">
         <template #default="{ row }">
           <el-input-number
             :model-value="Number(modelValue[row.invoiceId] ?? 0)"
@@ -47,7 +50,7 @@ const totalAllocated = computed(() =>
     </el-table>
 
     <div v-if="rows.length" class="grand-total">
-      <span class="grand-total-label">Total Allocated</span>
+      <span class="grand-total-label">{{ t('pickers.totalAllocated') }}</span>
       <span class="grand-total-value">{{ formatMoney(totalAllocated) }}</span>
     </div>
   </div>

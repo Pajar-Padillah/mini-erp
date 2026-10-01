@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Delete, Plus } from '@element-plus/icons-vue'
@@ -19,6 +20,7 @@ interface FormLine {
 const props = defineProps<{ id?: string }>()
 const isEdit = !!props.id
 
+const { t } = useI18n()
 const router = useRouter()
 const catalogStore = useCatalogStore()
 const companyStore = useCompanyStore()
@@ -39,7 +41,7 @@ onMounted(async () => {
     try {
       const order = await salesOrderApi.get(Number(props.id))
       if (order.document_status !== 'DRAFT') {
-        ElMessage.warning('Only DRAFT orders can be edited')
+        ElMessage.warning(t('salesOrders.form.onlyDraftEditable'))
         router.replace({ name: 'sales-orders-detail', params: { id: props.id } })
         return
       }
@@ -92,14 +94,14 @@ async function createOrder(lineItems: ReturnType<typeof buildLineItems>, thenSub
     items: lineItems,
   })
   if (!thenSubmit) {
-    ElMessage.success(`Created ${order.order_no}`)
+    ElMessage.success(t('salesOrders.form.created', { no: order.order_no }))
     return order
   }
   try {
     order = await salesOrderApi.submit(order.id)
-    ElMessage.success(`Created and submitted ${order.order_no}`)
+    ElMessage.success(t('salesOrders.form.createdAndSubmitted', { no: order.order_no }))
   } catch (err) {
-    ElMessage.warning(`Created ${order.order_no} as a draft, but submit failed: ${apiErrorMessage(err)}`)
+    ElMessage.warning(t('salesOrders.form.createdDraftSubmitFailed', { no: order.order_no, error: apiErrorMessage(err) }))
   }
   return order
 }
@@ -112,16 +114,16 @@ function actionFor(thenSubmit: boolean): 'draft' | 'submit' | 'save' {
 
 async function submit(thenSubmit = false) {
   if (!isEdit && !companyStore.selectedCompanyId) {
-    ElMessage.warning('Select a company first')
+    ElMessage.warning(t('common.selectCompanyFirst'))
     return
   }
   if (items.value.some((it) => !it.product_id)) {
-    ElMessage.warning('Select a product for every line')
+    ElMessage.warning(t('salesOrders.form.selectProductForEveryLine'))
     return
   }
   if (thenSubmit) {
     try {
-      await ElMessageBox.confirm('Create and submit this order? It will become ACTIVE and ready for delivery.', 'Confirm Submit', { type: 'warning' })
+      await ElMessageBox.confirm(t('salesOrders.form.confirmSubmitMessage'), t('common.confirmSubmitTitle'), { type: 'warning' })
     } catch {
       return
     }
@@ -137,7 +139,7 @@ async function submit(thenSubmit = false) {
         notes: form.notes,
         items: lineItems,
       })
-      ElMessage.success(`Updated ${order.order_no}`)
+      ElMessage.success(t('salesOrders.form.updated', { no: order.order_no }))
       router.push({ name: 'sales-orders-detail', params: { id: order.id } })
     } else {
       const order = await createOrder(lineItems, thenSubmit)
@@ -155,55 +157,55 @@ async function submit(thenSubmit = false) {
 <template>
   <div class="page">
     <PageHeader
-      :title="isEdit ? 'Edit Sales Order' : 'New Sales Order'"
-      :subtitle="isEdit ? 'Only DRAFT orders can be edited.' : 'Create a draft order, then submit it to make it active.'"
-      :breadcrumb="{ label: 'Sales Orders', to: '/sales-orders' }"
+      :title="isEdit ? t('salesOrders.form.titleEdit') : t('salesOrders.form.titleNew')"
+      :subtitle="isEdit ? t('salesOrders.form.subtitleEdit') : t('salesOrders.form.subtitleNew')"
+      :breadcrumb="{ label: t('salesOrders.form.breadcrumb'), to: '/sales-orders' }"
       show-back
     />
 
     <div class="card" v-loading="loading">
       <el-form label-position="top" class="form-grid">
-        <el-form-item label="Customer">
-          <el-input v-model="form.customer_name" placeholder="e.g. Toko Kosmetik Sukses Mandiri" />
+        <el-form-item :label="t('salesOrders.form.customer')">
+          <el-input v-model="form.customer_name" :placeholder="t('salesOrders.form.customerPlaceholder')" />
         </el-form-item>
-        <el-form-item label="Order Date">
+        <el-form-item :label="t('salesOrders.form.orderDate')">
           <el-date-picker v-model="form.order_date" type="date" value-format="YYYY-MM-DD" style="width: 100%" />
         </el-form-item>
-        <el-form-item label="Notes" class="span-2">
-          <el-input v-model="form.notes" type="textarea" :rows="2" placeholder="Optional" />
+        <el-form-item :label="t('common.notes')" class="span-2">
+          <el-input v-model="form.notes" type="textarea" :rows="2" :placeholder="t('common.optional')" />
         </el-form-item>
       </el-form>
 
       <div class="section-header">
-        <div class="section-title">Items</div>
-        <el-button size="small" :icon="Plus" @click="addRow">Add Row</el-button>
+        <div class="section-title">{{ t('common.items') }}</div>
+        <el-button size="small" :icon="Plus" @click="addRow">{{ t('common.addRow') }}</el-button>
       </div>
       <el-table :data="items" size="small">
-        <el-table-column label="Product" min-width="260">
+        <el-table-column :label="t('common.product')" min-width="260">
           <template #default="{ row, $index }">
-            <el-select v-model="row.product_id" filterable placeholder="Select product" style="width: 100%" @change="(v: number) => onProductChange($index, v)">
+            <el-select v-model="row.product_id" filterable :placeholder="t('salesOrders.form.productPlaceholder')" style="width: 100%" @change="(v: number) => onProductChange($index, v)">
               <el-option v-for="p in catalogStore.products" :key="p.id" :label="p.name" :value="p.id" />
             </el-select>
           </template>
         </el-table-column>
-        <el-table-column label="Qty" width="160">
+        <el-table-column :label="t('common.qty')" width="160">
           <template #default="{ row }">
             <el-input-number v-model="row.qty_ordered" :min="0.001" :controls="false" style="width: 100%" />
           </template>
         </el-table-column>
-        <el-table-column label="Price" width="180">
+        <el-table-column :label="t('common.price')" width="180">
           <template #default="{ row }">
             <el-input-number v-model="row.unit_price" :min="0" :controls="false" style="width: 100%" />
           </template>
         </el-table-column>
-        <el-table-column label="Total" width="180" align="right">
+        <el-table-column :label="t('common.total')" width="180" align="right">
           <template #default="{ row }">
             {{ formatMoney(lineTotal(row)) }}
           </template>
         </el-table-column>
         <el-table-column label="" width="56" align="center">
           <template #default="{ $index }">
-            <el-tooltip content="Delete row" placement="top">
+            <el-tooltip :content="t('common.deleteRow')" placement="top">
               <el-button
                 type="danger"
                 :icon="Delete"
@@ -219,19 +221,19 @@ async function submit(thenSubmit = false) {
       </el-table>
 
       <div class="grand-total">
-        <span class="grand-total-label">Grand Total</span>
+        <span class="grand-total-label">{{ t('common.grandTotal') }}</span>
         <span class="grand-total-value">{{ formatMoney(grandTotal) }}</span>
       </div>
 
       <div class="form-footer">
-        <el-button @click="router.back()">Cancel</el-button>
+        <el-button @click="router.back()">{{ t('common.cancel') }}</el-button>
         <template v-if="isEdit">
-          <el-button type="primary" :loading="submitting" @click="submit()">Save Changes</el-button>
+          <el-button type="primary" :loading="submitting" @click="submit()">{{ t('common.saveChanges') }}</el-button>
         </template>
         <template v-else>
-          <el-button type="warning" plain :loading="pendingAction === 'draft'" :disabled="submitting" @click="submit(false)">Create Draft</el-button>
+          <el-button type="warning" plain :loading="pendingAction === 'draft'" :disabled="submitting" @click="submit(false)">{{ t('common.createDraft') }}</el-button>
           <el-button type="primary" :loading="pendingAction === 'submit'" :disabled="submitting" @click="submit(true)">
-            Create &amp; Submit
+            {{ t('common.createAndSubmit') }}
           </el-button>
         </template>
       </div>

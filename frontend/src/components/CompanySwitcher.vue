@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useCompanyStore } from '../stores/companyStore'
 
+const { t } = useI18n()
 const companyStore = useCompanyStore()
 onMounted(() => companyStore.loadCompanies())
 
@@ -13,7 +15,7 @@ function onSelect(v: number) {
 <template>
   <el-select
     :model-value="companyStore.selectedCompanyId ?? undefined"
-    placeholder="Select company"
+    :placeholder="t('company.placeholder')"
     style="width: 260px"
     @update:model-value="onSelect"
   >

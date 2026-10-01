@@ -44,6 +44,26 @@
   color: var(--gray-700);
 }
 
+/* Dark mode overrides (toggled via the .dark class on <html>) */
+html.dark {
+  --gray-900: #f1f5f9;
+  --gray-700: #cbd5e1;
+  --gray-500: #94a3b8;
+  --gray-400: #64748b;
+  --gray-200: #2b3548;
+  --gray-100: #1e293b;
+  --gray-50: #0f172a;
+
+  --danger-light: rgba(239, 68, 68, 0.16);
+  --warning-light: rgba(245, 158, 11, 0.16);
+  --success-light: rgba(22, 163, 74, 0.18);
+
+  --bg-page: #0b1220;
+  --bg-card: #131c2e;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -109,6 +129,7 @@ a {
   font-weight: 500;
   padding: 8px 14px;
   border-radius: var(--radius-md);
+  white-space: nowrap;
   transition: background 0.15s, color 0.15s;
 }
 .app-nav a:hover {
@@ -351,6 +372,20 @@ a {
 .status-pill.red {
   background: var(--danger-light);
   color: #b91c1c;
+}
+
+html.dark .status-pill.blue {
+  background: rgba(59, 130, 246, 0.16);
+  color: #93c5fd;
+}
+html.dark .status-pill.amber {
+  color: #fbbf24;
+}
+html.dark .status-pill.green {
+  color: #4ade80;
+}
+html.dark .status-pill.red {
+  color: #fca5a5;
 }
 
 /* Tables */

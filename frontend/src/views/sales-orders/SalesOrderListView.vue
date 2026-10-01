@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useSalesOrderStore } from '../../stores/salesOrderStore'
 import { useCompanyStore } from '../../stores/companyStore'
@@ -8,6 +9,7 @@ import PageHeader from '../../components/PageHeader.vue'
 import PaginationBar from '../../components/PaginationBar.vue'
 import { formatMoney } from '../../utils/format'
 
+const { t } = useI18n()
 const store = useSalesOrderStore()
 const companyStore = useCompanyStore()
 const router = useRouter()
@@ -44,15 +46,15 @@ const filtered = computed(() => {
 
 <template>
   <div class="page">
-    <PageHeader title="Sales Orders" subtitle="Manage sales orders and their delivery/invoice/payment progress.">
+    <PageHeader :title="t('salesOrders.list.title')" :subtitle="t('salesOrders.list.subtitle')">
       <template #actions>
-        <el-button type="primary" @click="router.push({ name: 'sales-orders-new' })">+ New Sales Order</el-button>
+        <el-button type="primary" @click="router.push({ name: 'sales-orders-new' })">{{ t('salesOrders.list.newButton') }}</el-button>
       </template>
     </PageHeader>
 
     <div class="filter-bar">
-      <el-input v-model="search" placeholder="Search by order no or customer..." clearable style="width: 280px" />
-      <el-select v-model="statusFilter" placeholder="Filter by status" clearable style="width: 180px">
+      <el-input v-model="search" :placeholder="t('salesOrders.list.searchPlaceholder')" clearable style="width: 280px" />
+      <el-select v-model="statusFilter" :placeholder="t('common.filterByStatus')" clearable style="width: 180px">
         <el-option label="DRAFT" value="DRAFT" />
         <el-option label="ACTIVE" value="ACTIVE" />
         <el-option label="PROCESSED" value="PROCESSED" />
@@ -66,15 +68,15 @@ const filtered = computed(() => {
       row-class-name="clickable-row"
       @row-click="(row: any) => router.push({ name: 'sales-orders-detail', params: { id: row.id } })"
     >
-      <el-table-column prop="order_no" label="Order No" min-width="180" />
-      <el-table-column prop="customer_name" label="Customer" min-width="200" />
-      <el-table-column prop="order_date" label="Date" width="120">
+      <el-table-column prop="order_no" :label="t('salesOrders.list.orderNo')" min-width="180" />
+      <el-table-column prop="customer_name" :label="t('salesOrders.list.customer')" min-width="200" />
+      <el-table-column prop="order_date" :label="t('common.date')" width="120">
         <template #default="{ row }">{{ row.order_date?.slice(0, 10) }}</template>
       </el-table-column>
-      <el-table-column label="Total" width="160">
+      <el-table-column :label="t('common.total')" width="160">
         <template #default="{ row }">{{ formatMoney(row.total_amount) }}</template>
       </el-table-column>
-      <el-table-column label="Status" width="140">
+      <el-table-column :label="t('common.status')" width="140">
         <template #default="{ row }"><StatusTag :status="row.document_status" /></template>
       </el-table-column>
     </el-table>

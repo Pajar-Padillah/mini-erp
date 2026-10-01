@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Search } from '@element-plus/icons-vue'
 import { useCatalogStore } from '../stores/catalogStore'
 import { formatQty } from '../utils/format'
 
+const { t } = useI18n()
 const catalogStore = useCatalogStore()
 const visible = ref(false)
 const search = ref('')
@@ -50,22 +52,22 @@ const filtered = computed(() => {
 
 <template>
   <el-button size="small" :icon="Search" @click="open">
-    Check Stock <span class="shortcut-hint">/</span>
+    {{ t('stockCheck.button') }} <span class="shortcut-hint">/</span>
   </el-button>
 
-  <el-dialog v-model="visible" title="Check Stock" width="700px" align-center>
-    <el-input v-model="search" placeholder="Search by product name or SKU..." clearable autofocus />
+  <el-dialog v-model="visible" :title="t('stockCheck.title')" width="700px" align-center>
+    <el-input v-model="search" :placeholder="t('stockCheck.searchPlaceholder')" clearable autofocus />
     <el-table :data="filtered" v-loading="loading" size="small" style="margin-top: 12px" max-height="360">
-      <el-table-column label="Product" min-width="200">
+      <el-table-column :label="t('stockCheck.product')" min-width="200">
         <template #default="{ row }">{{ row.product?.name ?? `#${row.product_id}` }}</template>
       </el-table-column>
-      <el-table-column label="Brand" width="110">
+      <el-table-column :label="t('stockCheck.brand')" width="110">
         <template #default="{ row }">{{ row.product?.brand?.name ?? '—' }}</template>
       </el-table-column>
-      <el-table-column label="SKU" width="120">
+      <el-table-column :label="t('stockCheck.sku')" width="120">
         <template #default="{ row }">{{ row.product?.sku ?? '—' }}</template>
       </el-table-column>
-      <el-table-column label="Qty on Hand" width="130" align="right">
+      <el-table-column :label="t('stockCheck.qtyOnHand')" width="130" align="right">
         <template #default="{ row }">{{ formatQty(row.quantity_on_hand) }} {{ row.product?.uom }}</template>
       </el-table-column>
     </el-table>

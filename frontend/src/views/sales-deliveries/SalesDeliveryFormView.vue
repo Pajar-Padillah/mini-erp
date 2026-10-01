@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { salesOrderApi } from '../../api/salesOrderApi'
@@ -13,6 +14,7 @@ import type { SalesOrder } from '../../types/salesOrder'
 const props = defineProps<{ id?: string }>()
 const isEdit = !!props.id
 
+const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const companyStore = useCompanyStore()
@@ -39,7 +41,7 @@ onMounted(async () => {
     try {
       const delivery = await salesDeliveryApi.get(Number(props.id))
       if (delivery.document_status !== 'DRAFT') {
-        ElMessage.warning('Only DRAFT deliveries can be edited')
+        ElMessage.warning(t('salesDeliveries.form.onlyDraftEditable'))
         router.replace({ name: 'sales-deliveries-detail', params: { id: props.id } })
         return
       }
@@ -93,14 +95,14 @@ async function createDelivery(items: { source_order_item_id: number; qty: string
     items,
   })
   if (!thenSubmit) {
-    ElMessage.success(`Created ${delivery.delivery_no}`)
+    ElMessage.success(t('salesDeliveries.form.created', { no: delivery.delivery_no }))
     return delivery
   }
   try {
     delivery = await salesDeliveryApi.submit(delivery.id)
-    ElMessage.success(`Created and submitted ${delivery.delivery_no}`)
+    ElMessage.success(t('salesDeliveries.form.createdAndSubmitted', { no: delivery.delivery_no }))
   } catch (err) {
-    ElMessage.warning(`Created ${delivery.delivery_no} as a draft, but submit failed: ${apiErrorMessage(err)}`)
+    ElMessage.warning(t('salesDeliveries.form.createdDraftSubmitFailed', { no: delivery.delivery_no, error: apiErrorMessage(err) }))
   }
   return delivery
 }
@@ -113,23 +115,23 @@ function actionFor(thenSubmit: boolean): 'draft' | 'submit' | 'save' {
 
 async function submit(thenSubmit = false) {
   if (!order.value) {
-    ElMessage.warning('Select a sales order first')
+    ElMessage.warning(t('salesDeliveries.form.selectOrderFirst'))
     return
   }
   const items = Object.entries(qtyByItem.value)
     .filter(([, qty]) => Number(qty) > 0)
     .map(([sourceItemId, qty]) => ({ source_order_item_id: Number(sourceItemId), qty }))
   if (items.length === 0) {
-    ElMessage.warning('Enter at least one quantity to deliver')
+    ElMessage.warning(t('salesDeliveries.form.enterAtLeastOneQty'))
     return
   }
   if (!isEdit && !companyStore.selectedCompanyId) {
-    ElMessage.warning('Select a company first')
+    ElMessage.warning(t('common.selectCompanyFirst'))
     return
   }
   if (thenSubmit) {
     try {
-      await ElMessageBox.confirm('Create and submit this delivery? Stock will be deducted.', 'Confirm Submit', { type: 'warning' })
+      await ElMessageBox.confirm(t('salesDeliveries.form.confirmSubmitMessage'), t('common.confirmSubmitTitle'), { type: 'warning' })
     } catch {
       return
     }
@@ -143,7 +145,7 @@ async function submit(thenSubmit = false) {
         notes: form.notes,
         items,
       })
-      ElMessage.success(`Updated ${delivery.delivery_no}`)
+      ElMessage.success(t('salesDeliveries.form.updated', { no: delivery.delivery_no }))
       router.push({ name: 'sales-deliveries-detail', params: { id: delivery.id } })
     } else {
       const delivery = await createDelivery(items, thenSubmit)
@@ -161,46 +163,46 @@ async function submit(thenSubmit = false) {
 <template>
   <div class="page">
     <PageHeader
-      :title="isEdit ? 'Edit Sales Delivery' : 'New Sales Delivery'"
-      :subtitle="isEdit ? 'Only DRAFT deliveries can be edited.' : 'Pull quantities from an existing sales order.'"
-      :breadcrumb="{ label: 'Deliveries', to: '/sales-deliveries' }"
+      :title="isEdit ? t('salesDeliveries.form.titleEdit') : t('salesDeliveries.form.titleNew')"
+      :subtitle="isEdit ? t('salesDeliveries.form.subtitleEdit') : t('salesDeliveries.form.subtitleNew')"
+      :breadcrumb="{ label: t('salesDeliveries.form.breadcrumb'), to: '/sales-deliveries' }"
       show-back
     />
 
     <div class="card" v-loading="loading">
       <el-form label-position="top" class="form-grid">
-        <el-form-item label="Sales Order" class="span-2">
+        <el-form-item :label="t('salesDeliveries.form.salesOrder')" class="span-2">
           <el-select
             :model-value="orderId ?? undefined"
             filterable
             :disabled="isEdit"
-            placeholder="Select a sales order"
+            :placeholder="t('salesDeliveries.form.salesOrderPlaceholder')"
             style="width: 100%"
             @update:model-value="onSelectOrder"
           >
             <el-option v-for="o in selectableOrders" :key="o.id" :label="`${o.order_no} — ${o.customer_name}`" :value="o.id" />
           </el-select>
         </el-form-item>
-        <el-form-item label="Delivery Date">
+        <el-form-item :label="t('salesDeliveries.form.deliveryDate')">
           <el-date-picker v-model="form.delivery_date" type="date" value-format="YYYY-MM-DD" style="width: 100%" />
         </el-form-item>
-        <el-form-item label="Notes">
-          <el-input v-model="form.notes" type="textarea" :rows="1" placeholder="Optional" />
+        <el-form-item :label="t('common.notes')">
+          <el-input v-model="form.notes" type="textarea" :rows="1" :placeholder="t('common.optional')" />
         </el-form-item>
       </el-form>
 
-      <div class="section-title">Pull quantities from order rows</div>
+      <div class="section-title">{{ t('salesDeliveries.form.pullQuantities') }}</div>
       <RemainingQtyPicker :rows="rows" v-model="qtyByItem" />
 
       <div class="form-footer">
-        <el-button @click="router.back()">Cancel</el-button>
+        <el-button @click="router.back()">{{ t('common.cancel') }}</el-button>
         <template v-if="isEdit">
-          <el-button type="primary" :loading="submitting" @click="submit()">Save Changes</el-button>
+          <el-button type="primary" :loading="submitting" @click="submit()">{{ t('common.saveChanges') }}</el-button>
         </template>
         <template v-else>
-          <el-button type="warning" plain :loading="pendingAction === 'draft'" :disabled="submitting" @click="submit(false)">Create Draft</el-button>
+          <el-button type="warning" plain :loading="pendingAction === 'draft'" :disabled="submitting" @click="submit(false)">{{ t('common.createDraft') }}</el-button>
           <el-button type="primary" :loading="pendingAction === 'submit'" :disabled="submitting" @click="submit(true)">
-            Create &amp; Submit
+            {{ t('common.createAndSubmit') }}
           </el-button>
         </template>
       </div>
