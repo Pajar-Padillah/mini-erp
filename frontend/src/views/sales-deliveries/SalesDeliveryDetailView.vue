@@ -1,18 +1,24 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { Box, Calendar, Tickets, User } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { salesDeliveryApi } from '../../api/salesDeliveryApi'
 import { apiErrorMessage } from '../../api/client'
 import StatusTag from '../../components/StatusTag.vue'
 import PageHeader from '../../components/PageHeader.vue'
-import { formatQty } from '../../utils/format'
+import DetailStat from '../../components/detail/DetailStat.vue'
+import DetailCard from '../../components/detail/DetailCard.vue'
+import DocCollabPanel from '../../components/doc-collab/DocCollabPanel.vue'
+import { docKey } from '../../stores/docCollabStore'
+import { formatDate, formatQty } from '../../utils/format'
 import type { SalesDelivery } from '../../types/salesDelivery'
 
 const props = defineProps<{ id: string }>()
 const router = useRouter()
 const delivery = ref<SalesDelivery | null>(null)
 const busy = ref(false)
+const totalQty = computed(() => delivery.value?.items.reduce((a, i) => a + Number(i.qty), 0) ?? 0)
 
 async function load() {
   delivery.value = await salesDeliveryApi.get(Number(props.id))
@@ -67,41 +73,59 @@ function createInvoice() {
 </script>
 
 <template>
-  <div class="page" v-if="delivery">
-    <PageHeader :title="delivery.delivery_no" :subtitle="`From ${delivery.sales_order?.order_no ?? 'order #' + delivery.sales_order_id}`" :breadcrumb="{ label: 'Deliveries', to: '/sales-deliveries' }" show-back>
+  <div class="page detail-page" v-if="delivery">
+    <PageHeader :title="delivery.delivery_no" :breadcrumb="{ label: 'Deliveries', to: '/sales-deliveries' }" show-back>
       <template #badges><StatusTag :status="delivery.document_status" /></template>
       <template #actions>
         <el-button v-if="delivery.document_status === 'DRAFT'" @click="router.push({ name: 'sales-deliveries-edit', params: { id: delivery.id } })">Edit</el-button>
         <el-button v-if="delivery.document_status === 'DRAFT'" type="primary" :loading="busy" @click="submit">Submit</el-button>
-        <el-button v-if="delivery.document_status === 'ACTIVE'" type="warning" :loading="busy" @click="unsubmit">Unsubmit</el-button>
-        <el-button v-if="delivery.document_status === 'DRAFT'" type="danger" @click="remove">Delete</el-button>
-        <el-button v-if="delivery.document_status === 'ACTIVE' || delivery.document_status === 'PROCESSED'" type="success" @click="createInvoice">Create Invoice</el-button>
+        <el-button v-if="delivery.document_status === 'ACTIVE'" type="warning" plain :loading="busy" @click="unsubmit">Unsubmit</el-button>
+        <el-button v-if="delivery.document_status === 'DRAFT'" type="danger" plain @click="remove">Delete</el-button>
+        <el-button v-if="delivery.document_status === 'ACTIVE' || delivery.document_status === 'PROCESSED'" type="primary" @click="createInvoice">Create Invoice</el-button>
       </template>
     </PageHeader>
 
-    <div class="summary-grid">
-      <div class="summary-card"><div class="label">Sales Order</div><div class="value">
-        <router-link :to="{ name: 'sales-orders-detail', params: { id: delivery.sales_order_id } }">{{ delivery.sales_order?.order_no ?? delivery.sales_order_id }}</router-link>
-      </div></div>
-      <div class="summary-card"><div class="label">Delivery Date</div><div class="value">{{ delivery.delivery_date?.slice(0, 10) }}</div></div>
+    <div class="detail-stats">
+      <DetailStat
+        label="Sales order"
+        :value="delivery.sales_order?.order_no ?? String(delivery.sales_order_id)"
+        :to="{ name: 'sales-orders-detail', params: { id: delivery.sales_order_id } }"
+        :icon="Tickets"
+      />
+      <DetailStat label="Customer" :value="delivery.sales_order?.customer_name ?? '-'" :icon="User" tone="gray" />
+      <DetailStat label="Delivery date" :value="formatDate(delivery.delivery_date)" :icon="Calendar" tone="amber" />
+      <DetailStat label="Qty delivered" :value="formatQty(totalQty)" :hint="`${delivery.items.length} line(s)`" :icon="Box" tone="green" />
     </div>
 
-    <div class="section-title">Items</div>
-    <el-table :data="delivery.items" size="small">
-      <el-table-column label="Product">
-        <template #default="{ row }">{{ row.product?.name ?? row.product_id }}</template>
-      </el-table-column>
-      <el-table-column label="Qty Delivered" width="140">
-        <template #default="{ row }">{{ formatQty(row.qty) }}</template>
-      </el-table-column>
-      <el-table-column label="Remaining (to invoice)" width="180">
-        <template #default="{ row }">{{ formatQty(row.remaining_qty ?? row.qty) }}</template>
-      </el-table-column>
-    </el-table>
+    <DetailCard title="Items" :subtitle="`${delivery.items.length} line(s) · ${formatQty(totalQty)} unit(s) delivered`">
+      <el-table :data="delivery.items" size="small">
+        <el-table-column label="#" width="50">
+          <template #default="{ $index }">{{ $index + 1 }}</template>
+        </el-table-column>
+        <el-table-column label="Product" min-width="240">
+          <template #default="{ row }">
+            <div class="detail-product-name">{{ row.product?.name ?? row.product_id }}</div>
+            <div v-if="row.product?.sku" class="detail-product-sku">{{ row.product.sku }}</div>
+          </template>
+        </el-table-column>
+        <el-table-column label="Qty delivered" width="150" align="right">
+          <template #default="{ row }">{{ formatQty(row.qty) }}</template>
+        </el-table-column>
+        <el-table-column label="Remaining (to invoice)" width="190" align="right">
+          <template #default="{ row }">{{ formatQty(row.remaining_qty ?? row.qty) }}</template>
+        </el-table-column>
+      </el-table>
+      <template #footer>
+        <dl class="detail-totals">
+          <dt class="is-grand">Total delivered</dt><dd class="is-grand">{{ formatQty(totalQty) }}</dd>
+        </dl>
+      </template>
+    </DetailCard>
 
-    <template v-if="delivery.notes">
-      <div class="section-title">Notes</div>
-      <p style="color: var(--gray-700); margin: 0">{{ delivery.notes }}</p>
-    </template>
+    <DetailCard title="Notes">
+      <p class="detail-notes" :class="{ 'is-empty': !delivery.notes }">{{ delivery.notes || 'No notes.' }}</p>
+    </DetailCard>
+
+    <DocCollabPanel :doc-key="docKey('sales-delivery', props.id)" />
   </div>
 </template>

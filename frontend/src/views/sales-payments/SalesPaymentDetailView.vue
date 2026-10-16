@@ -1,12 +1,17 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { Calendar, CreditCard, Document, Money } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { salesPaymentApi } from '../../api/salesPaymentApi'
 import { apiErrorMessage } from '../../api/client'
 import StatusTag from '../../components/StatusTag.vue'
 import PageHeader from '../../components/PageHeader.vue'
-import { formatMoney } from '../../utils/format'
+import DetailStat from '../../components/detail/DetailStat.vue'
+import DetailCard from '../../components/detail/DetailCard.vue'
+import DocCollabPanel from '../../components/doc-collab/DocCollabPanel.vue'
+import { docKey } from '../../stores/docCollabStore'
+import { formatDate, formatMoney } from '../../utils/format'
 import type { SalesPayment } from '../../types/salesPayment'
 
 const props = defineProps<{ id: string }>()
@@ -63,45 +68,54 @@ async function remove() {
 </script>
 
 <template>
-  <div class="page" v-if="payment">
-    <PageHeader :title="payment.payment_no" subtitle="Payments can allocate across multiple invoices." :breadcrumb="{ label: 'Payments', to: '/sales-payments' }" show-back>
+  <div class="page detail-page" v-if="payment">
+    <PageHeader :title="payment.payment_no" :breadcrumb="{ label: 'Payments', to: '/sales-payments' }" show-back>
       <template #badges><StatusTag :status="payment.document_status" /></template>
       <template #actions>
         <el-button v-if="payment.document_status === 'DRAFT'" @click="router.push({ name: 'sales-payments-edit', params: { id: payment.id } })">Edit</el-button>
         <el-button v-if="payment.document_status === 'DRAFT'" type="primary" :loading="busy" @click="submit">Submit</el-button>
-        <el-button v-if="payment.document_status === 'SUBMITTED'" type="warning" :loading="busy" @click="unsubmit">Unsubmit</el-button>
-        <el-button v-if="payment.document_status === 'DRAFT'" type="danger" @click="remove">Delete</el-button>
+        <el-button v-if="payment.document_status === 'SUBMITTED'" type="warning" plain :loading="busy" @click="unsubmit">Unsubmit</el-button>
+        <el-button v-if="payment.document_status === 'DRAFT'" type="danger" plain @click="remove">Delete</el-button>
       </template>
     </PageHeader>
 
-    <div class="summary-grid">
-      <div class="summary-card"><div class="label">Payment Date</div><div class="value">{{ payment.payment_date?.slice(0, 10) }}</div></div>
-      <div class="summary-card"><div class="label">Method</div><div class="value">{{ payment.payment_method || '-' }}</div></div>
-      <div class="summary-card"><div class="label">Total</div><div class="value">{{ formatMoney(payment.total_amount) }}</div></div>
+    <div class="detail-stats">
+      <DetailStat label="Payment date" :value="formatDate(payment.payment_date)" :icon="Calendar" tone="gray" />
+      <DetailStat label="Method" :value="payment.payment_method || '-'" :icon="CreditCard" tone="amber" />
+      <DetailStat label="Invoices" :value="String(payment.allocations.length)" hint="Allocated in this payment" :icon="Document" />
+      <DetailStat label="Total" :value="formatMoney(payment.total_amount)" :icon="Money" tone="green" />
     </div>
 
-    <div class="section-title">Allocations</div>
-    <el-table :data="payment.allocations" size="small">
-      <el-table-column label="Invoice">
-        <template #default="{ row }">
-          <router-link :to="{ name: 'sales-invoices-detail', params: { id: row.sales_invoice_id } }">
-            {{ row.sales_invoice?.invoice_no ?? row.sales_invoice_id }}
-          </router-link>
-        </template>
-      </el-table-column>
-      <el-table-column label="Amount" width="180">
-        <template #default="{ row }">{{ formatMoney(row.amount) }}</template>
-      </el-table-column>
-    </el-table>
+    <DetailCard title="Allocations" :subtitle="`${payment.allocations.length} invoice(s) settled by this payment`">
+      <el-table :data="payment.allocations" size="small">
+        <el-table-column label="#" width="50">
+          <template #default="{ $index }">{{ $index + 1 }}</template>
+        </el-table-column>
+        <el-table-column label="Invoice" min-width="220">
+          <template #default="{ row }">
+            <router-link :to="{ name: 'sales-invoices-detail', params: { id: row.sales_invoice_id } }" class="detail-product-name">
+              {{ row.sales_invoice?.invoice_no ?? row.sales_invoice_id }}
+            </router-link>
+          </template>
+        </el-table-column>
+        <el-table-column label="Invoice total" width="180" align="right">
+          <template #default="{ row }">{{ row.sales_invoice ? formatMoney(row.sales_invoice.total_amount) : '-' }}</template>
+        </el-table-column>
+        <el-table-column label="Amount" width="180" align="right">
+          <template #default="{ row }">{{ formatMoney(row.amount) }}</template>
+        </el-table-column>
+      </el-table>
+      <template #footer>
+        <dl class="detail-totals">
+          <dt class="is-grand">Total allocated</dt><dd class="is-grand">{{ formatMoney(payment.total_amount) }}</dd>
+        </dl>
+      </template>
+    </DetailCard>
 
-    <div class="grand-total">
-      <span class="grand-total-label">Total Allocated</span>
-      <span class="grand-total-value">{{ formatMoney(payment.total_amount) }}</span>
-    </div>
+    <DetailCard title="Notes">
+      <p class="detail-notes" :class="{ 'is-empty': !payment.notes }">{{ payment.notes || 'No notes.' }}</p>
+    </DetailCard>
 
-    <template v-if="payment.notes">
-      <div class="section-title">Notes</div>
-      <p style="color: var(--gray-700); margin: 0">{{ payment.notes }}</p>
-    </template>
+    <DocCollabPanel :doc-key="docKey('sales-payment', props.id)" />
   </div>
 </template>

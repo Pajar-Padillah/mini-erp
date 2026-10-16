@@ -1,14 +1,30 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, type Component } from 'vue'
 import { useRouter } from 'vue-router'
-import { Close, HomeFilled, ShoppingCart, Van, Document, Wallet } from '@element-plus/icons-vue'
+import { ChatDotRound, Close, HomeFilled, ShoppingCart, Van, Document, Wallet, User, OfficeBuilding, Goods, House, Notebook, Discount, CreditCard, Files, Memo, ShoppingBag, Tickets, RefreshLeft } from '@element-plus/icons-vue'
 import { useTabsStore } from '../stores/tabsStore'
+import { staticMenuItem } from '../navigation/menu'
 
 const router = useRouter()
 const tabsStore = useTabsStore()
 
-const ICONS = { home: HomeFilled, cart: ShoppingCart, van: Van, document: Document, wallet: Wallet }
-const ICON_COLORS = { home: 'indigo', cart: 'indigo', van: 'blue', document: 'amber', wallet: 'green' }
+const ICONS: Record<string, Component> = {
+  home: HomeFilled, chat: ChatDotRound, cart: ShoppingCart, van: Van, document: Document, wallet: Wallet,
+  customer: User, supplier: OfficeBuilding, product: Goods, warehouse: House, coa: Notebook, tax: Discount,
+  'quote': Tickets, 'purchase-request': Memo, 'purchase-order': ShoppingBag, 'purchase-invoice': Files, 'purchase-payment': CreditCard, 'purchase-return': RefreshLeft,
+}
+const ICON_COLORS: Record<string, string> = {
+  home: 'indigo', chat: 'blue', cart: 'indigo', van: 'blue', document: 'amber', wallet: 'green',
+  customer: 'indigo', supplier: 'blue', product: 'amber', warehouse: 'green', coa: 'indigo', tax: 'blue',
+  'quote': 'indigo', 'purchase-request': 'indigo', 'purchase-order': 'blue', 'purchase-invoice': 'amber', 'purchase-payment': 'green', 'purchase-return': 'blue',
+}
+
+function tabIcon(key: string): Component {
+  return ICONS[key] ?? staticMenuItem(key)?.icon ?? HomeFilled
+}
+function tabColor(key: string): string {
+  return ICON_COLORS[key] ?? staticMenuItem(key)?.color ?? 'indigo'
+}
 
 const dragIndex = ref<number | null>(null)
 const dragOverIndex = ref<number | null>(null)
@@ -92,7 +108,7 @@ function ctxCloseAll() {
       @drop="onDrop(index)"
       @dragend="onDragEnd"
     >
-      <el-icon class="app-tab-icon" :class="ICON_COLORS[tab.icon]"><component :is="ICONS[tab.icon]" /></el-icon>
+      <el-icon class="app-tab-icon" :class="tabColor(tab.icon)"><component :is="tabIcon(tab.icon)" /></el-icon>
       <span class="app-tab-title">{{ tab.title }}</span>
       <button v-if="tab.closable" class="app-tab-close" type="button" @click="close(tab.key, $event)">
         <el-icon><Close /></el-icon>

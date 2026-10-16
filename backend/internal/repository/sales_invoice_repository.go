@@ -78,12 +78,8 @@ func (r *SalesInvoiceRepository) LockManyForUpdate(tx *gorm.DB, ids []uint) (map
 func (r *SalesInvoiceRepository) List(db *gorm.DB, companyID uint, status, paymentStatus string, p PageRequest) ([]model.SalesInvoice, PageResult, error) {
 	page, pageSize, offset := p.Normalized()
 	q := ScopeToCompany(db.Model(&model.SalesInvoice{}), companyID)
-	if status != "" {
-		q = q.Where("document_status = ?", status)
-	}
-	if paymentStatus != "" {
-		q = q.Where("payment_status = ?", paymentStatus)
-	}
+	q = WhereIn(q, "document_status", status)
+	q = WhereIn(q, "payment_status", paymentStatus)
 	var total int64
 	if err := q.Count(&total).Error; err != nil {
 		return nil, PageResult{}, err

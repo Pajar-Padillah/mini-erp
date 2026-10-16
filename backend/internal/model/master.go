@@ -7,10 +7,12 @@ import (
 	"gorm.io/gorm"
 )
 
+// Company is a group (ParentID nil) or a branch of a group (ParentID set).
 type Company struct {
 	ID        uint           `gorm:"primaryKey" json:"id"`
 	Code      string         `gorm:"size:20;not null;uniqueIndex" json:"code"`
 	Name      string         `gorm:"size:150;not null" json:"name"`
+	ParentID  *uint          `gorm:"index" json:"parent_id"`
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`

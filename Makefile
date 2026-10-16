@@ -8,7 +8,7 @@ up:
 down:
 	docker compose down
 
-DB_DSN ?= host=localhost user=erp password=erp dbname=mini_erp port=5544 sslmode=disable
+DB_DSN ?= host=localhost user=developer password=123123 dbname=mini_erp port=5432 sslmode=disable
 
 migrate-up:
 	cd backend && DB_DSN="$(DB_DSN)" go run ./cmd/migrate

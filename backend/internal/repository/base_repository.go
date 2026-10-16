@@ -1,6 +1,10 @@
 package repository
 
-import "gorm.io/gorm"
+import (
+	"strings"
+
+	"gorm.io/gorm"
+)
 
 type PageRequest struct {
 	Page     int
@@ -26,6 +30,22 @@ type PageResult struct {
 	TotalItems int64 `json:"total_items"`
 }
 
+// ScopeToCompany limits rows to the given company. When the company is a group,
+// rows of all its branches are included as well.
 func ScopeToCompany(db *gorm.DB, companyID uint) *gorm.DB {
-	return db.Where("company_id = ?", companyID)
+	return db.Where("company_id IN (SELECT id FROM companies WHERE id = ? OR parent_id = ?)", companyID, companyID)
+}
+
+// WhereIn filters column by a comma-separated list of values, e.g. "DRAFT,ACTIVE".
+func WhereIn(db *gorm.DB, column, csv string) *gorm.DB {
+	var values []string
+	for _, v := range strings.Split(csv, ",") {
+		if v = strings.TrimSpace(v); v != "" {
+			values = append(values, v)
+		}
+	}
+	if len(values) == 0 {
+		return db
+	}
+	return db.Where(column+" IN ?", values)
 }

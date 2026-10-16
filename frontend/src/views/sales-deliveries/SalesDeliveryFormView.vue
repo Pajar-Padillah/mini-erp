@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { salesOrderApi } from '../../api/salesOrderApi'
@@ -10,9 +10,19 @@ import RemainingQtyPicker, { type PickerRow } from '../../components/RemainingQt
 import PageHeader from '../../components/PageHeader.vue'
 import type { SalesOrder } from '../../types/salesOrder'
 import { useTabsStore } from '../../stores/tabsStore'
+import DocCollabPanel from '../../components/doc-collab/DocCollabPanel.vue'
+import { docKey, draftDocKey, useDocCollabStore } from '../../stores/docCollabStore'
 
 const props = defineProps<{ id?: string }>()
 const isEdit = !!props.id
+
+// Attachments (and comments, once saved): a new document collects them under a draft key until it is saved.
+const collab = useDocCollabStore()
+const collabKey = isEdit ? docKey('sales-delivery', props.id!) : draftDocKey('sales-delivery')
+let collabSaved = isEdit
+onBeforeUnmount(() => {
+  if (!collabSaved) collab.discard(collabKey)
+})
 
 const route = useRoute()
 const router = useRouter()
@@ -153,6 +163,8 @@ async function submit(thenSubmit = false) {
       router.push({ name: 'sales-deliveries-detail', params: { id: delivery.id } })
     } else {
       const delivery = await createDelivery(items, thenSubmit)
+      collab.moveThread(collabKey, docKey('sales-delivery', delivery.id))
+      collabSaved = true
       router.push({ name: 'sales-deliveries-detail', params: { id: delivery.id } })
     }
   } catch (err) {
@@ -168,7 +180,6 @@ async function submit(thenSubmit = false) {
   <div class="page">
     <PageHeader
       :title="isEdit ? 'Edit Sales Delivery' : 'New Sales Delivery'"
-      :subtitle="isEdit ? 'Only DRAFT deliveries can be edited.' : 'Pull quantities from an existing sales order.'"
       :breadcrumb="{ label: 'Deliveries', to: '/sales-deliveries' }"
       show-back
     />
@@ -197,6 +208,10 @@ async function submit(thenSubmit = false) {
 
       <div class="section-title">Pull quantities from order rows</div>
       <RemainingQtyPicker :rows="rows" v-model="qtyByItem" />
+
+      <div class="form-collab">
+        <DocCollabPanel :doc-key="collabKey" />
+      </div>
 
       <div class="form-footer">
         <el-button @click="closeTab">Cancel</el-button>

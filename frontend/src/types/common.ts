@@ -20,6 +20,8 @@ export interface Company {
   id: number
   code: string
   name: string
+  /** Set on branches; a group (or standalone company) has none. */
+  parent_id: number | null
 }
 
 export interface Brand {

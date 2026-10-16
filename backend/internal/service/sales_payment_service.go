@@ -32,27 +32,27 @@ func NewSalesPaymentService(
 	}
 }
 
-func (s *SalesPaymentService) buildPaymentAllocations(tx *gorm.DB, companyID uint, inputs []dto.SalesPaymentAllocationInput) ([]model.SalesPaymentAllocation, decimal.Decimal, error) {
+// buildPaymentAllocations also returns the company that owns the allocated invoices.
+func (s *SalesPaymentService) buildPaymentAllocations(tx *gorm.DB, inputs []dto.SalesPaymentAllocationInput) ([]model.SalesPaymentAllocation, decimal.Decimal, uint, error) {
 	allocations := make([]model.SalesPaymentAllocation, 0, len(inputs))
 	total := decimal.Zero
+	sourceCompanyIDs := make([]uint, 0, len(inputs))
 
 	for i, in := range inputs {
 		if in.Amount.LessThanOrEqual(decimal.Zero) {
-			return nil, decimal.Zero, apperror.Wrap(apperror.ErrValidation, "allocation amount must be greater than 0")
+			return nil, decimal.Zero, 0, apperror.Wrap(apperror.ErrValidation, "allocation amount must be greater than 0")
 		}
 		var invoice model.SalesInvoice
 		if err := tx.First(&invoice, in.SalesInvoiceID).Error; err != nil {
-			return nil, decimal.Zero, apperror.Wrap(apperror.ErrValidation, "invoice not found")
+			return nil, decimal.Zero, 0, apperror.Wrap(apperror.ErrValidation, "invoice not found")
 		}
-		if err := AssertSameCompany(companyID, invoice.CompanyID); err != nil {
-			return nil, decimal.Zero, err
-		}
+		sourceCompanyIDs = append(sourceCompanyIDs, invoice.CompanyID)
 		if invoice.DocumentStatus != model.DocumentStatusActive && invoice.DocumentStatus != model.DocumentStatusProcessed {
-			return nil, decimal.Zero, apperror.Wrap(apperror.ErrInvalidStatus, "invoice must be ACTIVE or PROCESSED to accept payment")
+			return nil, decimal.Zero, 0, apperror.Wrap(apperror.ErrInvalidStatus, "invoice must be ACTIVE or PROCESSED to accept payment")
 		}
 		outstanding := invoice.TotalAmount.Sub(invoice.PaidAmount)
 		if in.Amount.GreaterThan(outstanding) {
-			return nil, decimal.Zero, apperror.Wrap(apperror.ErrOverpayment, "allocation amount exceeds outstanding invoice amount")
+			return nil, decimal.Zero, 0, apperror.Wrap(apperror.ErrOverpayment, "allocation amount exceeds outstanding invoice amount")
 		}
 		allocations = append(allocations, model.SalesPaymentAllocation{
 			LineNo:         i + 1,
@@ -61,7 +61,11 @@ func (s *SalesPaymentService) buildPaymentAllocations(tx *gorm.DB, companyID uin
 		})
 		total = total.Add(in.Amount)
 	}
-	return allocations, total, nil
+	sourceCompanyID, err := SingleSourceCompany(sourceCompanyIDs)
+	if err != nil {
+		return nil, decimal.Zero, 0, err
+	}
+	return allocations, total, sourceCompanyID, nil
 }
 
 func (s *SalesPaymentService) CreateDraft(req dto.CreateSalesPaymentRequest) (*model.SalesPayment, error) {
@@ -72,17 +76,21 @@ func (s *SalesPaymentService) CreateDraft(req dto.CreateSalesPaymentRequest) (*m
 
 	var created *model.SalesPayment
 	err = s.tx.WithinTransaction(func(tx *gorm.DB) error {
-		allocations, total, err := s.buildPaymentAllocations(tx, req.CompanyID, req.Allocations)
+		allocations, total, sourceCompanyID, err := s.buildPaymentAllocations(tx, req.Allocations)
+		if err != nil {
+			return err
+		}
+		companyID, err := ResolveDerivedCompany(tx, req.CompanyID, sourceCompanyID)
 		if err != nil {
 			return err
 		}
 
-		number, err := s.numbering.Next(tx, req.CompanyID, model.DocTypeSalesPayment)
+		number, err := s.numbering.Next(tx, companyID, model.DocTypeSalesPayment)
 		if err != nil {
 			return err
 		}
 		sp := &model.SalesPayment{
-			CompanyID:      req.CompanyID,
+			CompanyID:      companyID,
 			PaymentNo:      number,
 			PaymentDate:    paymentDate,
 			PaymentMethod:  req.PaymentMethod,
@@ -123,8 +131,11 @@ func (s *SalesPaymentService) Update(id uint, req dto.UpdateSalesPaymentRequest)
 			return apperror.Wrap(apperror.ErrInvalidStatus, "only DRAFT payments can be edited")
 		}
 
-		allocations, total, err := s.buildPaymentAllocations(tx, sp.CompanyID, req.Allocations)
+		allocations, total, sourceCompanyID, err := s.buildPaymentAllocations(tx, req.Allocations)
 		if err != nil {
+			return err
+		}
+		if err := AssertSameCompany(sp.CompanyID, sourceCompanyID); err != nil {
 			return err
 		}
 

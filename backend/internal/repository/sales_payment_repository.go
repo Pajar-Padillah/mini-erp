@@ -57,9 +57,7 @@ func (r *SalesPaymentRepository) FindByIDForUpdate(tx *gorm.DB, id uint) (*model
 func (r *SalesPaymentRepository) List(db *gorm.DB, companyID uint, status string, p PageRequest) ([]model.SalesPayment, PageResult, error) {
 	page, pageSize, offset := p.Normalized()
 	q := ScopeToCompany(db.Model(&model.SalesPayment{}), companyID)
-	if status != "" {
-		q = q.Where("document_status = ?", status)
-	}
+	q = WhereIn(q, "document_status", status)
 	var total int64
 	if err := q.Count(&total).Error; err != nil {
 		return nil, PageResult{}, err

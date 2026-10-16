@@ -33,36 +33,36 @@ func NewSalesInvoiceService(
 	}
 }
 
-func (s *SalesInvoiceService) buildInvoiceItems(tx *gorm.DB, companyID uint, inputs []dto.SalesInvoiceItemInput) ([]model.SalesInvoiceItem, decimal.Decimal, error) {
+// buildInvoiceItems also returns the company that owns the source deliveries.
+func (s *SalesInvoiceService) buildInvoiceItems(tx *gorm.DB, inputs []dto.SalesInvoiceItemInput) ([]model.SalesInvoiceItem, decimal.Decimal, uint, error) {
 	items := make([]model.SalesInvoiceItem, 0, len(inputs))
 	total := decimal.Zero
+	sourceCompanyIDs := make([]uint, 0, len(inputs))
 
 	for i, in := range inputs {
 		if in.Qty.LessThanOrEqual(decimal.Zero) {
-			return nil, decimal.Zero, apperror.Wrap(apperror.ErrValidation, "qty must be greater than 0")
+			return nil, decimal.Zero, 0, apperror.Wrap(apperror.ErrValidation, "qty must be greater than 0")
 		}
 		var deliveryItem model.SalesDeliveryItem
 		if err := tx.First(&deliveryItem, in.SourceDeliveryItemID).Error; err != nil {
-			return nil, decimal.Zero, apperror.Wrap(apperror.ErrValidation, "source delivery item not found")
+			return nil, decimal.Zero, 0, apperror.Wrap(apperror.ErrValidation, "source delivery item not found")
 		}
 		var delivery model.SalesDelivery
 		if err := tx.First(&delivery, deliveryItem.SalesDeliveryID).Error; err != nil {
-			return nil, decimal.Zero, err
+			return nil, decimal.Zero, 0, err
 		}
-		if err := AssertSameCompany(companyID, delivery.CompanyID); err != nil {
-			return nil, decimal.Zero, err
-		}
+		sourceCompanyIDs = append(sourceCompanyIDs, delivery.CompanyID)
 		if delivery.DocumentStatus != model.DocumentStatusActive && delivery.DocumentStatus != model.DocumentStatusProcessed {
-			return nil, decimal.Zero, apperror.Wrap(apperror.ErrInvalidStatus, "delivery must be ACTIVE or PROCESSED to invoice against it")
+			return nil, decimal.Zero, 0, apperror.Wrap(apperror.ErrInvalidStatus, "delivery must be ACTIVE or PROCESSED to invoice against it")
 		}
 
 		pulled, err := s.deliveryRepo.SumSubmittedInvoiceQtyForDeliveryItem(tx, deliveryItem.ID)
 		if err != nil {
-			return nil, decimal.Zero, err
+			return nil, decimal.Zero, 0, err
 		}
 		remaining := deliveryItem.Qty.Sub(pulled)
 		if in.Qty.GreaterThan(remaining) {
-			return nil, decimal.Zero, apperror.Wrap(apperror.ErrOverInvoice, "invoice qty exceeds remaining delivered quantity")
+			return nil, decimal.Zero, 0, apperror.Wrap(apperror.ErrOverInvoice, "invoice qty exceeds remaining delivered quantity")
 		}
 
 		items = append(items, model.SalesInvoiceItem{
@@ -74,7 +74,11 @@ func (s *SalesInvoiceService) buildInvoiceItems(tx *gorm.DB, companyID uint, inp
 		})
 		total = total.Add(in.Qty.Mul(deliveryItem.UnitPrice))
 	}
-	return items, total, nil
+	sourceCompanyID, err := SingleSourceCompany(sourceCompanyIDs)
+	if err != nil {
+		return nil, decimal.Zero, 0, err
+	}
+	return items, total, sourceCompanyID, nil
 }
 
 func (s *SalesInvoiceService) CreateDraft(req dto.CreateSalesInvoiceRequest) (*model.SalesInvoice, error) {
@@ -85,17 +89,21 @@ func (s *SalesInvoiceService) CreateDraft(req dto.CreateSalesInvoiceRequest) (*m
 
 	var created *model.SalesInvoice
 	err = s.tx.WithinTransaction(func(tx *gorm.DB) error {
-		items, total, err := s.buildInvoiceItems(tx, req.CompanyID, req.Items)
+		items, total, sourceCompanyID, err := s.buildInvoiceItems(tx, req.Items)
+		if err != nil {
+			return err
+		}
+		companyID, err := ResolveDerivedCompany(tx, req.CompanyID, sourceCompanyID)
 		if err != nil {
 			return err
 		}
 
-		number, err := s.numbering.Next(tx, req.CompanyID, model.DocTypeSalesInvoice)
+		number, err := s.numbering.Next(tx, companyID, model.DocTypeSalesInvoice)
 		if err != nil {
 			return err
 		}
 		si := &model.SalesInvoice{
-			CompanyID:      req.CompanyID,
+			CompanyID:      companyID,
 			InvoiceNo:      number,
 			InvoiceDate:    invoiceDate,
 			Notes:          req.Notes,
@@ -137,8 +145,11 @@ func (s *SalesInvoiceService) Update(id uint, req dto.UpdateSalesInvoiceRequest)
 			return apperror.Wrap(apperror.ErrInvalidStatus, "only DRAFT invoices can be edited")
 		}
 
-		items, total, err := s.buildInvoiceItems(tx, si.CompanyID, req.Items)
+		items, total, sourceCompanyID, err := s.buildInvoiceItems(tx, req.Items)
 		if err != nil {
+			return err
+		}
+		if err := AssertSameCompany(si.CompanyID, sourceCompanyID); err != nil {
 			return err
 		}
 

@@ -1,20 +1,26 @@
 <script setup lang="ts">
 import { watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import AppSidebar from './components/AppSidebar.vue'
 import NavSearch from './components/NavSearch.vue'
+import EnvBadge from './components/EnvBadge.vue'
+import NavQuickActions from './components/NavQuickActions.vue'
 import UserAvatar from './components/UserAvatar.vue'
 import StockCheckModal from './components/StockCheckModal.vue'
 import TabBar from './components/TabBar.vue'
 import { useCompanyStore } from './stores/companyStore'
 import { useTabsStore } from './stores/tabsStore'
+import { useSidebar } from './composables/useSidebar'
+import { Menu } from '@element-plus/icons-vue'
 
 const router = useRouter()
+const route = useRoute()
 const companyStore = useCompanyStore()
 const tabsStore = useTabsStore()
+const { isMobile, openMobile } = useSidebar()
 
 router.afterEach((to) => {
-  tabsStore.openTab(to)
+  if (!to.meta.public) tabsStore.openTab(to)
 })
 
 watch(
@@ -30,13 +36,21 @@ watch(
 
 <template>
   <el-config-provider :message="{ showClose: true }">
-    <el-container class="app-shell">
+    <router-view v-if="route.meta.public" />
+    <el-container v-else class="app-shell">
       <AppSidebar />
       <el-container class="app-body">
         <el-header class="app-header" height="64px">
           <div class="app-header-inner">
-            <NavSearch />
+            <button v-if="isMobile" type="button" class="app-menu-toggle" aria-label="Open menu" @click="openMobile">
+              <el-icon><Menu /></el-icon>
+            </button>
+            <div class="app-header-search">
+              <NavSearch />
+              <EnvBadge />
+            </div>
             <div class="app-header-actions">
+              <NavQuickActions />
               <StockCheckModal />
               <UserAvatar />
             </div>

@@ -34,16 +34,30 @@ func Run(db *gorm.DB) error {
 	return nil
 }
 
+// seedCompanies creates the Sant Group holding and its branches.
 func seedCompanies(db *gorm.DB) ([]model.Company, error) {
-	defs := []model.Company{
-		{Code: "SGI", Name: "PT Sant Group Indonesia"},
-		{Code: "SMI", Name: "PT Sant Manufaktur Indonesia"},
+	group := model.Company{Code: "SGI", Name: "PT Sant Group Indonesia"}
+	if err := db.Where("code = ?", group.Code).FirstOrCreate(&group, group).Error; err != nil {
+		return nil, err
 	}
-	var out []model.Company
-	for _, d := range defs {
+	out := []model.Company{group}
+
+	branches := []model.Company{
+		{Code: "CRS", Name: "CRUSITA"},
+		{Code: "AOR", Name: "AOERA"},
+		{Code: "YRS", Name: "YORS"},
+		{Code: "KYF", Name: "KYFEE"},
+	}
+	for _, d := range branches {
 		var row model.Company
-		if err := db.Where("code = ?", d.Code).FirstOrCreate(&row, d).Error; err != nil {
+		// Match on code only, so renaming a branch updates it instead of inserting a duplicate.
+		if err := db.Where("code = ?", d.Code).Attrs(d).FirstOrCreate(&row).Error; err != nil {
 			return nil, err
+		}
+		if row.ParentID == nil || *row.ParentID != group.ID || row.Name != d.Name {
+			if err := db.Model(&row).Updates(map[string]any{"parent_id": group.ID, "name": d.Name}).Error; err != nil {
+				return nil, err
+			}
 		}
 		out = append(out, row)
 	}
@@ -146,14 +160,9 @@ func seedSampleOrders(db *gorm.DB, companies []model.Company, products []model.P
 	for _, p := range products {
 		byCode[p.SKU] = p
 	}
-	var comp1, comp2 model.Company
+	byCompany := make(map[string]model.Company, len(companies))
 	for _, c := range companies {
-		switch c.Code {
-		case "SGI":
-			comp1 = c
-		case "SMI":
-			comp2 = c
-		}
+		byCompany[c.Code] = c
 	}
 
 	numbering := repository.NewDocumentNumberRepository(db)
@@ -172,7 +181,7 @@ func seedSampleOrders(db *gorm.DB, companies []model.Company, products []model.P
 
 	defs := []orderDef{
 		{
-			company:      comp1,
+			company:      byCompany["SGI"],
 			customerName: "PT Cantik Distribusi Nusantara",
 			notes:        "Seed sample order -- modern-trade distributor restock, ready for reviewer to partially deliver, invoice, and pay.",
 			lines: []lineDef{
@@ -182,7 +191,7 @@ func seedSampleOrders(db *gorm.DB, companies []model.Company, products []model.P
 			},
 		},
 		{
-			company:      comp1,
+			company:      byCompany["CRS"],
 			customerName: "Toko Kosmetik Sukses Mandiri",
 			notes:        "Seed sample order -- offline retail store order.",
 			lines: []lineDef{
@@ -191,18 +200,18 @@ func seedSampleOrders(db *gorm.DB, companies []model.Company, products []model.P
 			},
 		},
 		{
-			company:      comp2,
-			customerName: "PT Sant Group Indonesia",
-			notes:        "Seed sample order -- manufacturing arm supplying finished goods to the distribution company.",
+			company:      byCompany["AOR"],
+			customerName: "PT Mitra Retail Nusantara",
+			notes:        "Seed sample order -- branch order for a national retail chain.",
 			lines: []lineDef{
 				{"CRU-004", "100"},
 				{"YRS-004", "80"},
 			},
 		},
 		{
-			company:      comp2,
+			company:      byCompany["YRS"],
 			customerName: "PT Griya Kemasan Cantik",
-			notes:        "Seed sample order -- bulk wholesale order direct from the manufacturing arm.",
+			notes:        "Seed sample order -- bulk wholesale branch order.",
 			lines: []lineDef{
 				{"AOR-004", "200"},
 			},

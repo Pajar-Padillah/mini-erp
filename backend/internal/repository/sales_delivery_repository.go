@@ -61,9 +61,7 @@ func (r *SalesDeliveryRepository) List(db *gorm.DB, companyID uint, orderID uint
 	if orderID != 0 {
 		q = q.Where("sales_order_id = ?", orderID)
 	}
-	if status != "" {
-		q = q.Where("document_status = ?", status)
-	}
+	q = WhereIn(q, "document_status", status)
 	var total int64
 	if err := q.Count(&total).Error; err != nil {
 		return nil, PageResult{}, err

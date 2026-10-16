@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref, watch, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { salesInvoiceApi } from '../../api/salesInvoiceApi'
@@ -11,9 +11,19 @@ import PageHeader from '../../components/PageHeader.vue'
 import { formatMoney } from '../../utils/format'
 import type { SalesInvoice } from '../../types/salesInvoice'
 import { useTabsStore } from '../../stores/tabsStore'
+import DocCollabPanel from '../../components/doc-collab/DocCollabPanel.vue'
+import { docKey, draftDocKey, useDocCollabStore } from '../../stores/docCollabStore'
 
 const props = defineProps<{ id?: string }>()
 const isEdit = !!props.id
+
+// Attachments (and comments, once saved): a new document collects them under a draft key until it is saved.
+const collab = useDocCollabStore()
+const collabKey = isEdit ? docKey('sales-payment', props.id!) : draftDocKey('sales-payment')
+let collabSaved = isEdit
+onBeforeUnmount(() => {
+  if (!collabSaved) collab.discard(collabKey)
+})
 
 const route = useRoute()
 const router = useRouter()
@@ -149,6 +159,8 @@ async function submit(thenSubmit = false) {
       router.push({ name: 'sales-payments-detail', params: { id: payment.id } })
     } else {
       const payment = await createPayment(allocations, thenSubmit)
+      collab.moveThread(collabKey, docKey('sales-payment', payment.id))
+      collabSaved = true
       router.push({ name: 'sales-payments-detail', params: { id: payment.id } })
     }
   } catch (err) {
@@ -164,7 +176,6 @@ async function submit(thenSubmit = false) {
   <div class="page">
     <PageHeader
       :title="isEdit ? 'Edit Sales Payment' : 'New Sales Payment'"
-      :subtitle="isEdit ? 'Only DRAFT payments can be edited.' : 'Allocate one payment across one or more invoices.'"
       :breadcrumb="{ label: 'Payments', to: '/sales-payments' }"
       show-back
     />
@@ -194,6 +205,10 @@ async function submit(thenSubmit = false) {
 
       <div class="section-title">Allocate to invoices</div>
       <InvoiceAllocationPicker :rows="rows" v-model="amountByInvoice" />
+
+      <div class="form-collab">
+        <DocCollabPanel :doc-key="collabKey" />
+      </div>
 
       <div class="form-footer">
         <el-button @click="closeTab">Cancel</el-button>

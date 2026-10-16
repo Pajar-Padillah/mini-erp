@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Delete, Plus } from '@element-plus/icons-vue'
@@ -10,6 +10,8 @@ import { useTabsStore } from '../../stores/tabsStore'
 import { apiErrorMessage } from '../../api/client'
 import { formatMoney } from '../../utils/format'
 import PageHeader from '../../components/PageHeader.vue'
+import DocCollabPanel from '../../components/doc-collab/DocCollabPanel.vue'
+import { docKey, draftDocKey, useDocCollabStore } from '../../stores/docCollabStore'
 
 interface FormLine {
   product_id: number | null
@@ -19,6 +21,14 @@ interface FormLine {
 
 const props = defineProps<{ id?: string }>()
 const isEdit = !!props.id
+
+// Attachments (and comments, once saved): a new document collects them under a draft key until it is saved.
+const collab = useDocCollabStore()
+const collabKey = isEdit ? docKey('sales-order', props.id!) : draftDocKey('sales-order')
+let collabSaved = isEdit
+onBeforeUnmount(() => {
+  if (!collabSaved) collab.discard(collabKey)
+})
 
 const route = useRoute()
 const router = useRouter()
@@ -148,6 +158,8 @@ async function submit(thenSubmit = false) {
       router.push({ name: 'sales-orders-detail', params: { id: order.id } })
     } else {
       const order = await createOrder(lineItems, thenSubmit)
+      collab.moveThread(collabKey, docKey('sales-order', order.id))
+      collabSaved = true
       router.push({ name: 'sales-orders-detail', params: { id: order.id } })
     }
   } catch (err) {
@@ -163,7 +175,6 @@ async function submit(thenSubmit = false) {
   <div class="page">
     <PageHeader
       :title="isEdit ? 'Edit Sales Order' : 'New Sales Order'"
-      :subtitle="isEdit ? 'Only DRAFT orders can be edited.' : 'Create a draft order, then submit it to make it active.'"
       :breadcrumb="{ label: 'Sales Orders', to: '/sales-orders' }"
       show-back
     />
@@ -228,6 +239,10 @@ async function submit(thenSubmit = false) {
       <div class="grand-total">
         <span class="grand-total-label">Grand Total</span>
         <span class="grand-total-value">{{ formatMoney(grandTotal) }}</span>
+      </div>
+
+      <div class="form-collab">
+        <DocCollabPanel :doc-key="collabKey" />
       </div>
 
       <div class="form-footer">

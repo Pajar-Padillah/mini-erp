@@ -1,10 +1,12 @@
 import { defineStore } from 'pinia'
 import type { Router, RouteLocationNormalized } from 'vue-router'
+import appRouter from '../router'
 
 export interface AppTab {
   key: string
   title: string
-  icon: 'home' | 'cart' | 'van' | 'document' | 'wallet'
+  /** Built-in icon name, or a static menu item key (see navigation/menu.ts). */
+  icon: string
   closable: boolean
 }
 
@@ -13,6 +15,18 @@ const HOME_TAB: AppTab = { key: '/', title: 'Home', icon: 'home', closable: fals
 
 const TITLES: Record<string, string> = {
   home: 'Home',
+  'customers-list': 'Customers',
+  'suppliers-list': 'Suppliers',
+  'products-list': 'Products',
+  'warehouses-list': 'Warehouses',
+  'chart-of-accounts-list': 'Chart of Accounts',
+  'tax-codes-list': 'Tax Codes',
+  'sales-quotes-list': 'Sales Quotes',
+  'purchase-requests-list': 'Purchase Requests',
+  'purchase-orders-list': 'Purchase Orders',
+  'purchase-invoices-list': 'Purchase Invoices',
+  'purchase-payments-list': 'Purchase Payments',
+  'purchase-returns-list': 'Purchase Returns',
   'sales-orders-list': 'Sales Orders',
   'sales-orders-new': 'New Sales Order',
   'sales-orders-edit': 'Sales Order - Edit',
@@ -33,11 +47,25 @@ const TITLES: Record<string, string> = {
 
 function titleFor(route: RouteLocationNormalized): string {
   const name = route.name?.toString() ?? ''
-  return TITLES[name] ?? name
+  return TITLES[name] ?? (route.meta.title as string | undefined) ?? name
 }
 
 function iconFor(route: RouteLocationNormalized): AppTab['icon'] {
   const name = route.name?.toString() ?? ''
+  if (route.meta.title && route.meta.staticKey) return String(route.meta.staticKey)
+  if (name === 'chat') return 'chat'
+  if (name === 'customers-list') return 'customer'
+  if (name === 'suppliers-list') return 'supplier'
+  if (name === 'products-list') return 'product'
+  if (name === 'warehouses-list') return 'warehouse'
+  if (name === 'chart-of-accounts-list') return 'coa'
+  if (name === 'tax-codes-list') return 'tax'
+  if (name === 'sales-quotes-list') return 'quote'
+  if (name === 'purchase-requests-list') return 'purchase-request'
+  if (name === 'purchase-orders-list') return 'purchase-order'
+  if (name === 'purchase-invoices-list') return 'purchase-invoice'
+  if (name === 'purchase-payments-list') return 'purchase-payment'
+  if (name === 'purchase-returns-list') return 'purchase-return'
   if (name.startsWith('sales-orders')) return 'cart'
   if (name.startsWith('sales-deliveries')) return 'van'
   if (name.startsWith('sales-invoices')) return 'document'
@@ -50,7 +78,8 @@ function loadTabs(): AppTab[] {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (raw) {
       const parsed = JSON.parse(raw) as AppTab[]
-      if (Array.isArray(parsed) && parsed.length && parsed[0]?.key === '/') return parsed
+      // Drop tabs whose page no longer exists (e.g. a menu that was moved or removed).
+      if (Array.isArray(parsed) && parsed.length && parsed[0]?.key === '/') return parsed.filter((t) => appRouter.resolve(t.key).matched.length)
     }
   } catch {
     // ignore storage failures

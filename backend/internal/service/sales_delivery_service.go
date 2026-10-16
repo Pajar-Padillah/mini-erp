@@ -81,7 +81,8 @@ func (s *SalesDeliveryService) CreateDraft(req dto.CreateSalesDeliveryRequest) (
 		if err != nil {
 			return err
 		}
-		if err := AssertSameCompany(req.CompanyID, so.CompanyID); err != nil {
+		companyID, err := ResolveDerivedCompany(tx, req.CompanyID, so.CompanyID)
+		if err != nil {
 			return err
 		}
 		if so.DocumentStatus != model.DocumentStatusActive && so.DocumentStatus != model.DocumentStatusProcessed {
@@ -93,12 +94,12 @@ func (s *SalesDeliveryService) CreateDraft(req dto.CreateSalesDeliveryRequest) (
 			return err
 		}
 
-		number, err := s.numbering.Next(tx, req.CompanyID, model.DocTypeSalesDelivery)
+		number, err := s.numbering.Next(tx, companyID, model.DocTypeSalesDelivery)
 		if err != nil {
 			return err
 		}
 		sd := &model.SalesDelivery{
-			CompanyID:      req.CompanyID,
+			CompanyID:      companyID,
 			SalesOrderID:   req.SalesOrderID,
 			DeliveryNo:     number,
 			DeliveryDate:   deliveryDate,

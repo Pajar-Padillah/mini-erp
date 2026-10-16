@@ -1,13 +1,18 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { Calendar, CircleCheck, Money, Van, Warning } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { salesInvoiceApi } from '../../api/salesInvoiceApi'
 import { apiErrorMessage } from '../../api/client'
 import StatusTag from '../../components/StatusTag.vue'
 import PaymentStatusTag from '../../components/PaymentStatusTag.vue'
 import PageHeader from '../../components/PageHeader.vue'
-import { formatMoney, formatQty } from '../../utils/format'
+import DetailStat from '../../components/detail/DetailStat.vue'
+import DetailCard from '../../components/detail/DetailCard.vue'
+import DocCollabPanel from '../../components/doc-collab/DocCollabPanel.vue'
+import { docKey } from '../../stores/docCollabStore'
+import { formatDate, formatMoney, formatQty } from '../../utils/format'
 import type { SalesInvoice } from '../../types/salesInvoice'
 
 const props = defineProps<{ id: string }>()
@@ -75,8 +80,8 @@ function createPayment() {
 </script>
 
 <template>
-  <div class="page" v-if="invoice">
-    <PageHeader :title="invoice.invoice_no" subtitle="Document Status tracks payment allocation progress. Payment Status tracks how much has actually been paid — two independent fields." :breadcrumb="{ label: 'Invoices', to: '/sales-invoices' }" show-back>
+  <div class="page detail-page" v-if="invoice">
+    <PageHeader :title="invoice.invoice_no" :breadcrumb="{ label: 'Invoices', to: '/sales-invoices' }" show-back>
       <template #badges>
         <StatusTag :status="invoice.document_status" />
         <PaymentStatusTag :status="invoice.payment_status" />
@@ -84,48 +89,60 @@ function createPayment() {
       <template #actions>
         <el-button v-if="invoice.document_status === 'DRAFT'" @click="router.push({ name: 'sales-invoices-edit', params: { id: invoice.id } })">Edit</el-button>
         <el-button v-if="invoice.document_status === 'DRAFT'" type="primary" :loading="busy" @click="submit">Submit</el-button>
-        <el-button v-if="invoice.document_status === 'ACTIVE'" type="warning" :loading="busy" @click="unsubmit">Unsubmit</el-button>
-        <el-button v-if="invoice.document_status === 'DRAFT'" type="danger" @click="remove">Delete</el-button>
-        <el-button v-if="invoice.document_status === 'ACTIVE' || invoice.document_status === 'PROCESSED'" type="success" @click="createPayment">Create Payment</el-button>
+        <el-button v-if="invoice.document_status === 'ACTIVE'" type="warning" plain :loading="busy" @click="unsubmit">Unsubmit</el-button>
+        <el-button v-if="invoice.document_status === 'DRAFT'" type="danger" plain @click="remove">Delete</el-button>
+        <el-button v-if="invoice.document_status === 'ACTIVE' || invoice.document_status === 'PROCESSED'" type="primary" @click="createPayment">Create Payment</el-button>
       </template>
     </PageHeader>
 
-    <div class="summary-grid">
-      <div class="summary-card" v-if="sourceDeliveryItem"><div class="label">Sales Delivery</div><div class="value">
-        <router-link :to="{ name: 'sales-deliveries-detail', params: { id: sourceDeliveryItem.sales_delivery_id } }">
-          {{ sourceDeliveryItem.sales_delivery?.delivery_no ?? sourceDeliveryItem.sales_delivery_id }}
-        </router-link>
-      </div></div>
-      <div class="summary-card"><div class="label">Total</div><div class="value">{{ formatMoney(invoice.total_amount) }}</div></div>
-      <div class="summary-card"><div class="label">Paid</div><div class="value">{{ formatMoney(invoice.paid_amount) }}</div></div>
-      <div class="summary-card"><div class="label">Outstanding</div><div class="value">{{ formatMoney(outstanding) }}</div></div>
-      <div class="summary-card"><div class="label">Invoice Date</div><div class="value">{{ invoice.invoice_date?.slice(0, 10) }}</div></div>
+    <div class="detail-stats">
+      <DetailStat
+        v-if="sourceDeliveryItem"
+        label="Sales delivery"
+        :value="sourceDeliveryItem.sales_delivery?.delivery_no ?? String(sourceDeliveryItem.sales_delivery_id)"
+        :to="{ name: 'sales-deliveries-detail', params: { id: sourceDeliveryItem.sales_delivery_id } }"
+        :icon="Van"
+      />
+      <DetailStat label="Invoice date" :value="formatDate(invoice.invoice_date)" :icon="Calendar" tone="gray" />
+      <DetailStat label="Total" :value="formatMoney(invoice.total_amount)" :hint="`${invoice.items.length} line(s)`" :icon="Money" />
+      <DetailStat label="Paid" :value="formatMoney(invoice.paid_amount)" :icon="CircleCheck" tone="green" />
+      <DetailStat label="Outstanding" :value="formatMoney(outstanding)" :icon="Warning" :tone="Number(outstanding) > 0 ? 'red' : 'green'" />
     </div>
 
-    <div class="section-title">Items</div>
-    <el-table :data="invoice.items" size="small">
-      <el-table-column label="Product">
-        <template #default="{ row }">{{ row.product?.name ?? row.product_id }}</template>
-      </el-table-column>
-      <el-table-column label="Qty" width="120">
-        <template #default="{ row }">{{ formatQty(row.qty) }}</template>
-      </el-table-column>
-      <el-table-column label="Price" width="160">
-        <template #default="{ row }">{{ formatMoney(row.unit_price) }}</template>
-      </el-table-column>
-      <el-table-column label="Total" width="160" align="right">
-        <template #default="{ row }">{{ formatMoney(Number(row.qty) * Number(row.unit_price)) }}</template>
-      </el-table-column>
-    </el-table>
+    <DetailCard title="Items" :subtitle="`${invoice.items.length} line(s)`">
+      <el-table :data="invoice.items" size="small">
+        <el-table-column label="#" width="50">
+          <template #default="{ $index }">{{ $index + 1 }}</template>
+        </el-table-column>
+        <el-table-column label="Product" min-width="240">
+          <template #default="{ row }">
+            <div class="detail-product-name">{{ row.product?.name ?? row.product_id }}</div>
+            <div v-if="row.product?.sku" class="detail-product-sku">{{ row.product.sku }}</div>
+          </template>
+        </el-table-column>
+        <el-table-column label="Qty" width="120" align="right">
+          <template #default="{ row }">{{ formatQty(row.qty) }}</template>
+        </el-table-column>
+        <el-table-column label="Price" width="160" align="right">
+          <template #default="{ row }">{{ formatMoney(row.unit_price) }}</template>
+        </el-table-column>
+        <el-table-column label="Total" width="170" align="right">
+          <template #default="{ row }">{{ formatMoney(Number(row.qty) * Number(row.unit_price)) }}</template>
+        </el-table-column>
+      </el-table>
+      <template #footer>
+        <dl class="detail-totals">
+          <dt class="is-grand">Grand total</dt><dd class="is-grand">{{ formatMoney(invoice.total_amount) }}</dd>
+          <dt>Paid</dt><dd>{{ formatMoney(invoice.paid_amount) }}</dd>
+          <dt>Outstanding</dt><dd>{{ formatMoney(outstanding) }}</dd>
+        </dl>
+      </template>
+    </DetailCard>
 
-    <div class="grand-total">
-      <span class="grand-total-label">Grand Total</span>
-      <span class="grand-total-value">{{ formatMoney(invoice.total_amount) }}</span>
-    </div>
+    <DetailCard title="Notes">
+      <p class="detail-notes" :class="{ 'is-empty': !invoice.notes }">{{ invoice.notes || 'No notes.' }}</p>
+    </DetailCard>
 
-    <template v-if="invoice.notes">
-      <div class="section-title">Notes</div>
-      <p style="color: var(--gray-700); margin: 0">{{ invoice.notes }}</p>
-    </template>
+    <DocCollabPanel :doc-key="docKey('sales-invoice', props.id)" />
   </div>
 </template>
