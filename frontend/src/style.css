@@ -2971,11 +2971,23 @@ body.sidebar-drawer-open {
     visibility: visible;
     box-shadow: var(--shadow-lg);
   }
+  /* Two rows: menu, quick actions and user on top; full-width search underneath. */
+  .app-header {
+    height: auto !important;
+  }
   .app-header-inner {
-    padding: 0 12px;
-    gap: 10px;
+    flex-wrap: wrap;
+    padding: 8px 12px 10px;
+    gap: 8px 10px;
   }
   .app-header-actions {
+    gap: 6px;
+    margin-left: auto;
+    min-width: 0;
+  }
+  .app-header-search {
+    order: 3;
+    flex: 1 1 100%;
     gap: 8px;
   }
   .nav-search {
@@ -2983,25 +2995,48 @@ body.sidebar-drawer-open {
     width: auto;
     min-width: 0;
   }
-  .app-header-search {
-    flex: 1 1 auto;
-    gap: 8px;
-  }
-  .user-avatar-name {
-    display: none;
+  .el-autocomplete.nav-search .el-input {
+    width: 100%;
   }
   .user-avatar {
     width: auto;
+    min-width: 0;
+    gap: 6px;
     padding: 0;
     border: none;
     background: transparent;
   }
   .user-avatar-meta {
-    width: 130px;
+    width: 160px;
   }
   .company-switcher {
     width: 100%;
     margin: 0;
+  }
+  /* No room for the scope chip; the company dropdown still shows it. */
+  .company-switcher-badge {
+    display: none;
+  }
+  /* Side drawers (audit trail, related docs, approval, journal, comments) take the full width. */
+  .el-drawer.rtl,
+  .el-drawer.ltr {
+    width: 100% !important;
+    --el-drawer-size: 100% !important;
+  }
+  .el-drawer__header {
+    margin-bottom: 12px;
+    padding: 16px 16px 0;
+  }
+  .el-drawer__body {
+    padding: 0 16px 16px;
+  }
+  .el-message-box {
+    max-width: calc(100vw - 24px);
+  }
+  .el-popper.app-switcher-popper,
+  .el-popper.user-menu-popper,
+  .el-popper.company-switcher-popper {
+    max-width: calc(100vw - 24px);
   }
   .app-main {
     padding: 16px 12px;
@@ -3017,6 +3052,11 @@ body.sidebar-drawer-open {
   .page-header h2 {
     font-size: 19px;
   }
+  .page-actions {
+    flex-wrap: wrap;
+    flex-shrink: 1;
+    min-width: 0;
+  }
   .nav-quick-actions {
     gap: 2px;
   }
@@ -3031,6 +3071,9 @@ body.sidebar-drawer-open {
 @media (max-width: 420px) {
   .app-header-actions .nav-icon-btn {
     width: 32px;
+  }
+  .user-avatar-meta {
+    width: 124px;
   }
 }
 
