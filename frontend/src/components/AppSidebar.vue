@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
-import { HomeFilled, Fold, Expand, Close } from '@element-plus/icons-vue'
+import { useRoute, useRouter } from 'vue-router'
+import { HomeFilled, Fold, Expand, Close, Check, DCaret } from '@element-plus/icons-vue'
 import { useSidebar } from '../composables/useSidebar'
 import { MENU_MODULES } from '../navigation/menu'
+import { APPS, appForModule, appOwnsModule, type AppDef, type AppKey } from '../navigation/apps'
 import { useCompanyStore } from '../stores/companyStore'
 import { useAccessStore } from '../stores/accessStore'
 
 const route = useRoute()
+const router = useRouter()
 const companyStore = useCompanyStore()
 const access = useAccessStore()
 
@@ -20,6 +22,53 @@ const visibleModules = computed(() =>
       .filter((section) => section.items.length),
   })).filter((mod) => mod.sections.length),
 )
+
+// ---------------------------------------------------------------- apps (ERP / HRIS / CMS)
+const APP_STORAGE_KEY = 'mini-erp.activeApp'
+
+function getStoredApp(): AppKey {
+  try {
+    const v = localStorage.getItem(APP_STORAGE_KEY)
+    return APPS.some((a) => a.key === v) ? (v as AppKey) : 'erp'
+  } catch {
+    return 'erp'
+  }
+}
+
+const activeAppKey = ref<AppKey>(getStoredApp())
+watch(activeAppKey, (v) => {
+  try {
+    localStorage.setItem(APP_STORAGE_KEY, v)
+  } catch {
+    // ignore storage failures
+  }
+})
+
+// Apps the user can open: ERP always (Home), others only when they have a visible module.
+const availableApps = computed(() =>
+  APPS.filter((app) => app.home || visibleModules.value.some((mod) => appOwnsModule(app, mod.key))),
+)
+const activeApp = computed(() => availableApps.value.find((a) => a.key === activeAppKey.value) ?? availableApps.value[0])
+const appModules = computed(() => visibleModules.value.filter((mod) => appOwnsModule(activeApp.value, mod.key)))
+
+// Opening a page of another app (deep link, navbar search) switches the sidebar to that app.
+watch(
+  () => route.path,
+  (path) => {
+    const mod = MENU_MODULES.find((m) => m.items.some((item) => path === item.path || path.startsWith(item.path + '/')))
+    if (mod) activeAppKey.value = appForModule(mod.key).key
+  },
+  { immediate: true },
+)
+
+const appSwitcherOpen = ref(false)
+function switchApp(app: AppDef) {
+  appSwitcherOpen.value = false
+  if (app.key === activeApp.value.key) return
+  activeAppKey.value = app.key
+  const first = visibleModules.value.find((mod) => appOwnsModule(app, mod.key))?.sections[0]?.items[0]
+  router.push(app.home ? '/' : (first?.path ?? '/'))
+}
 
 
 const STORAGE_KEY = 'mini-erp.sidebarCollapsed'
@@ -113,6 +162,43 @@ const activeMenu = computed(() => {
       </div>
     </div>
 
+    <div class="app-switcher" :class="{ 'is-collapsed': collapsed }">
+      <el-popover
+        v-model:visible="appSwitcherOpen"
+        trigger="click"
+        :placement="collapsed ? 'right-start' : 'bottom-start'"
+        :width="216"
+        :offset="10"
+        :popper-class="collapsed ? 'app-switcher-popper' : 'app-switcher-popper is-below'"
+      >
+        <template #reference>
+          <button type="button" class="app-switcher-trigger" :title="collapsed ? `App: ${activeApp.title}` : undefined">
+            <span class="app-badge" :class="`is-${activeApp.color}`"><el-icon><component :is="activeApp.icon" /></el-icon></span>
+            <span class="app-switcher-text sidebar-fade" :aria-hidden="collapsed">
+              <span class="app-switcher-caption">Apps</span>
+              <span class="app-switcher-name">{{ activeApp.title }}</span>
+            </span>
+            <el-icon class="app-switcher-caret sidebar-fade"><DCaret /></el-icon>
+          </button>
+        </template>
+        <div class="app-switcher-menu">
+          <div class="app-switcher-heading">Switch app</div>
+          <button
+            v-for="app in availableApps"
+            :key="app.key"
+            type="button"
+            class="app-switcher-option"
+            :class="{ 'is-active': app.key === activeApp.key }"
+            @click="switchApp(app)"
+          >
+            <span class="app-badge" :class="`is-${app.color}`"><el-icon><component :is="app.icon" /></el-icon></span>
+            <span class="app-switcher-option-name">{{ app.title }}</span>
+            <el-icon v-if="app.key === activeApp.key" class="app-switcher-check"><Check /></el-icon>
+          </button>
+        </div>
+      </el-popover>
+    </div>
+
     <el-menu
       :default-active="activeMenu"
       router
@@ -120,11 +206,11 @@ const activeMenu = computed(() => {
       :collapse="collapsed"
       :collapse-transition="false"
     >
-      <el-menu-item index="/">
+      <el-menu-item v-if="activeApp.home" index="/">
         <div class="menu-icon-bubble indigo"><el-icon><HomeFilled /></el-icon></div>
         <template #title>Home</template>
       </el-menu-item>
-      <el-sub-menu v-for="mod in visibleModules" :key="mod.key" :index="mod.key">
+      <el-sub-menu v-for="mod in appModules" :key="mod.key" :index="mod.key">
         <template #title>
           <div class="menu-icon-bubble indigo"><el-icon><component :is="mod.icon" /></el-icon></div>
           <span>{{ mod.title }}</span>

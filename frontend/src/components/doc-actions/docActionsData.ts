@@ -191,6 +191,16 @@ export function journalLines(doc: DocRef): JournalLine[] | null {
   return [line('6-9000 General Expense', `${doc.type} ${doc.no}`, amount, 0), line('2-1900 Accrued Liabilities', 'Accrual', 0, amount)]
 }
 
+/** Whether this document type posts to the ledger at all (drives the Show Journal action). */
+export function postsJournal(doc: DocRef): boolean {
+  return journalLines(doc) !== null
+}
+
+/** Drafts have not posted yet; the journal is created on submit. */
+export function isDraft(doc: DocRef): boolean {
+  return doc.status?.toUpperCase() === 'DRAFT'
+}
+
 export const ACTION_LABELS: Record<DocAction, string> = {
   edit: 'Edit',
   comments: 'Comments',

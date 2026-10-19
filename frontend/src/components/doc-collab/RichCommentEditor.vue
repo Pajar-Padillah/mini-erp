@@ -118,8 +118,8 @@ onBeforeUnmount(() => editor.value?.destroy())
 
 // ---------- toolbar
 const chain = () => editor.value!.chain().focus()
-const COLORS = ['#12324e', '#0878bd', '#15803d', '#b45309', '#c53030', '#7c3aed', '#6d879c']
-const HIGHLIGHTS = ['#fff5d6', '#e8f4fb', '#dcfce7', '#fee2e2', '#ede9fe']
+const COLORS = ['#12324e', '#003366', '#15803d', '#b45309', '#c53030', '#7c3aed', '#6d879c']
+const HIGHLIGHTS = ['#fff5d6', '#e6ebf0', '#dcfce7', '#fee2e2', '#ede9fe']
 const blockType = computed({
   get: () => {
     const e = editor.value

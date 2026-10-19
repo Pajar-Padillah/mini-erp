@@ -9,12 +9,12 @@ const router = useRouter()
 const tabsStore = useTabsStore()
 
 const ICONS: Record<string, Component> = {
-  home: HomeFilled, chat: ChatDotRound, cart: ShoppingCart, van: Van, document: Document, wallet: Wallet,
+  home: HomeFilled, chat: ChatDotRound, approval: Tickets, cart: ShoppingCart, van: Van, document: Document, wallet: Wallet,
   customer: User, supplier: OfficeBuilding, product: Goods, warehouse: House, coa: Notebook, tax: Discount,
   'quote': Tickets, 'purchase-request': Memo, 'purchase-order': ShoppingBag, 'purchase-invoice': Files, 'purchase-payment': CreditCard, 'purchase-return': RefreshLeft,
 }
 const ICON_COLORS: Record<string, string> = {
-  home: 'indigo', chat: 'blue', cart: 'indigo', van: 'blue', document: 'amber', wallet: 'green',
+  home: 'indigo', chat: 'blue', approval: 'amber', cart: 'indigo', van: 'blue', document: 'amber', wallet: 'green',
   customer: 'indigo', supplier: 'blue', product: 'amber', warehouse: 'green', coa: 'indigo', tax: 'blue',
   'quote': 'indigo', 'purchase-request': 'indigo', 'purchase-order': 'blue', 'purchase-invoice': 'amber', 'purchase-payment': 'green', 'purchase-return': 'blue',
 }

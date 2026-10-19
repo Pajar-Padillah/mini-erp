@@ -1,9 +1,9 @@
 /* Design tokens */
 :root {
-  --brand: #0878bd;
-  --brand-dark: #005487;
-  --brand-light: #e8f4fb;
-  --brand-light-2: #c8e5f5;
+  --brand: #003366;
+  --brand-dark: #002952;
+  --brand-light: #e6ebf0;
+  --brand-light-2: #ccd6e0;
   --brand-gold: #ffb900;
   --brand-gold-dark: #8a6100;
   --brand-gold-light: #fff5d6;
@@ -23,7 +23,7 @@
   --success: #16a34a;
   --success-light: #f0fdf4;
 
-  --brand-gradient: linear-gradient(135deg, #168fd0 0%, #0878bd 60%, #005487 100%);
+  --brand-gradient: linear-gradient(135deg, #1a4d80 0%, #003366 60%, #002952 100%);
   --brand-gold-gradient: linear-gradient(135deg, #ffd34e 0%, #ffb900 60%, #e5a600 100%);
 
   --border: var(--gray-200);
@@ -37,17 +37,17 @@
   --shadow-sm: 0 1px 2px rgba(8, 59, 96, 0.05);
   --shadow-md: 0 8px 20px rgba(8, 59, 96, 0.08);
   --shadow-lg: 0 16px 32px rgba(8, 59, 96, 0.13);
-  --shadow-glow: 0 8px 20px -4px rgba(8, 120, 189, 0.32);
+  --shadow-glow: 0 8px 20px -4px rgba(0, 51, 102, 0.32);
 
   --font-sans: Arial, Helvetica, sans-serif;
   --font-heading: Arial, Helvetica, sans-serif;
 
   /* Element Plus theme overrides */
   --el-color-primary: var(--brand);
-  --el-color-primary-light-3: #5aafe0;
-  --el-color-primary-light-5: #83c3e8;
-  --el-color-primary-light-7: #add7f0;
-  --el-color-primary-light-8: #c8e5f5;
+  --el-color-primary-light-3: #4d7094;
+  --el-color-primary-light-5: #8099b3;
+  --el-color-primary-light-7: #b3c2d1;
+  --el-color-primary-light-8: #ccd6e0;
   --el-color-primary-light-9: var(--brand-light);
   --el-color-primary-dark-2: var(--brand-dark);
   --el-border-radius-base: var(--radius-md);
@@ -136,8 +136,8 @@ a {
   flex-shrink: 0;
   background:
     radial-gradient(120% 140% at 0% 0%, rgba(255, 185, 0, 0.16) 0%, rgba(255, 185, 0, 0) 55%),
-    radial-gradient(90% 120% at 100% 100%, rgba(22, 143, 208, 0.35) 0%, rgba(22, 143, 208, 0) 60%),
-    linear-gradient(180deg, #0a4774 0%, #07395f 100%);
+    radial-gradient(90% 120% at 100% 100%, rgba(26, 77, 128, 0.35) 0%, rgba(26, 77, 128, 0) 60%),
+    linear-gradient(180deg, #0a3d70 0%, #003366 100%);
   transition: padding var(--sidebar-speed) var(--sidebar-ease);
 }
 /* Gold accent line fading out to the right. */
@@ -226,8 +226,8 @@ a {
   top: 0;
   height: 100vh;
   height: 100dvh;
-  background: #07395f;
-  border-right: 1px solid #0c4a75;
+  background: #003366;
+  border-right: 1px solid #0d4275;
   display: flex;
   flex-direction: column;
   transition: width var(--sidebar-speed) var(--sidebar-ease);
@@ -273,7 +273,7 @@ a {
 
   --el-menu-bg-color: transparent;
   --el-menu-text-color: #e1edf6;
-  --el-menu-hover-bg-color: #0b4b78;
+  --el-menu-hover-bg-color: #0d4477;
   --el-menu-hover-text-color: #ffffff;
   --el-menu-active-color: #ffffff;
   --el-menu-item-height: 42px;
@@ -360,7 +360,7 @@ a {
   transition: background 0.15s, color 0.15s;
 }
 .app-sidebar-menu .el-menu-item.is-active {
-  background: var(--brand);
+  background: rgba(255, 255, 255, 0.14);
   color: #ffffff;
   font-weight: 700;
 }
@@ -432,6 +432,136 @@ a {
   color: #a9dafa;
 }
 
+/* App switcher (ERP / HRIS / CMS) under the brand header. */
+.app-switcher {
+  flex-shrink: 0;
+  padding: 12px 12px 0;
+  transition: padding var(--sidebar-speed) var(--sidebar-ease);
+}
+.app-switcher.is-collapsed {
+  padding: 12px 12px 0;
+}
+.app-switcher-trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 46px;
+  padding: 7px 10px;
+  border: 1px solid rgba(169, 196, 216, 0.28);
+  border-radius: var(--radius-md, 10px);
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  transition: background 0.15s, border-color 0.15s, padding var(--sidebar-speed) var(--sidebar-ease);
+}
+.app-switcher-trigger:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(169, 196, 216, 0.45);
+}
+.app-switcher.is-collapsed .app-switcher-trigger {
+  padding: 7px 5px;
+  border-color: transparent;
+}
+.app-switcher-text {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  line-height: 1.2;
+}
+.app-switcher-caption {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9fc0d8;
+}
+.app-switcher-name {
+  font-size: 14px;
+  font-weight: 700;
+}
+.app-switcher-caret {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: #9fc0d8;
+}
+.app-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  color: #ffffff;
+  font-size: 15px;
+}
+.app-badge.is-blue {
+  background: #1a4d80;
+}
+.app-badge.is-green {
+  background: #1f8a4c;
+}
+.app-badge.is-amber {
+  background: #d98e04;
+}
+.app-badge.is-indigo {
+  background: #475569;
+}
+
+.app-switcher-popper.el-popover.el-popper {
+  padding: 10px;
+  border-radius: 12px;
+}
+/* Arrow points at the app badge, not the middle of the full-width trigger. */
+.app-switcher-popper.is-below .el-popper__arrow {
+  left: 22px !important;
+  transform: none !important;
+}
+.app-switcher-heading {
+  padding: 4px 8px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gray-500);
+}
+.app-switcher-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 7px 8px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--gray-900);
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+.app-switcher-option + .app-switcher-option {
+  margin-top: 2px;
+}
+.app-switcher-option:hover {
+  background: var(--gray-100, #f1f5f9);
+}
+.app-switcher-option.is-active {
+  background: var(--brand-light);
+  font-weight: 600;
+}
+.app-switcher-option-name {
+  flex: 1;
+}
+.app-switcher-check {
+  color: var(--brand);
+}
+
 .app-sidebar-collapse-btn {
   flex-shrink: 0;
   display: flex;
@@ -449,7 +579,7 @@ a {
   transition: background 0.15s, color 0.15s;
 }
 .app-sidebar-collapse-btn:hover {
-  background: #0b4b78;
+  background: #0d4477;
   color: #ffffff;
 }
 .app-sidebar-collapse-btn {
@@ -583,6 +713,27 @@ a {
   border-bottom: 1px solid var(--border-soft);
   background: var(--bg-card);
   color: var(--gray-700);
+}
+/* Approval items are buttons that open the approval form. */
+button.nav-quick-item {
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid var(--border-soft);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+button.nav-quick-item:hover,
+button.nav-quick-item:focus-visible {
+  background: var(--gray-50);
+  outline: none;
+}
+.nav-quick-empty {
+  padding: 18px 16px;
+  font-size: 13px;
+  color: var(--gray-500);
+  text-align: center;
 }
 .nav-quick-item-content {
   display: flex;
@@ -1214,7 +1365,7 @@ a {
 }
 .tf-search:focus-within {
   border-color: var(--brand);
-  box-shadow: 0 0 0 3px rgba(8, 120, 189, 0.12);
+  box-shadow: 0 0 0 3px rgba(0, 51, 102, 0.12);
 }
 .tf-search .el-select__wrapper,
 .tf-search .el-input__wrapper {
@@ -2932,8 +3083,8 @@ body.sidebar-drawer-open {
   color: #e8f3fb;
   background:
     radial-gradient(70% 60% at 0% 0%, rgba(255, 185, 0, 0.18) 0%, rgba(255, 185, 0, 0) 60%),
-    radial-gradient(80% 70% at 100% 100%, rgba(22, 143, 208, 0.45) 0%, rgba(22, 143, 208, 0) 65%),
-    linear-gradient(160deg, #0a4774 0%, #07395f 55%, #052c4a 100%);
+    radial-gradient(80% 70% at 100% 100%, rgba(26, 77, 128, 0.45) 0%, rgba(26, 77, 128, 0) 65%),
+    linear-gradient(160deg, #0a3d70 0%, #003366 55%, #052c4a 100%);
 }
 .login-brand-logo {
   display: flex;
@@ -4408,4 +4559,19 @@ body.sidebar-drawer-open {
   font-size: 22px;
   font-weight: 700;
   color: var(--gray-900);
+}
+
+/* Saved-document form header: Next Actions / Print / ⋯ sit in .page-actions (flex + gap). */
+.page-actions > .el-button + .el-button {
+  margin-left: 0;
+}
+.form-doc-more {
+  width: 32px;
+  padding: 8px;
+}
+.form-doc-menu .el-dropdown-menu__item {
+  color: var(--brand);
+}
+.form-doc-menu .el-dropdown-menu__item.is-danger {
+  color: var(--el-color-danger);
 }

@@ -8,19 +8,25 @@ import { useCompanyStore } from '../../stores/companyStore'
 import { apiErrorMessage } from '../../api/client'
 import InvoiceAllocationPicker, { type AllocationRow } from '../../components/InvoiceAllocationPicker.vue'
 import PageHeader from '../../components/PageHeader.vue'
+import StatusTag from '../../components/StatusTag.vue'
+import { Delete, Promotion, RefreshLeft } from '@element-plus/icons-vue'
+import FormDocActions from '../../components/doc-actions/FormDocActions.vue'
+import type { DocRef } from '../../components/doc-actions/docActionsData'
 import { formatMoney } from '../../utils/format'
 import type { SalesInvoice } from '../../types/salesInvoice'
+import type { SalesPayment } from '../../types/salesPayment'
 import { useTabsStore } from '../../stores/tabsStore'
 import DocCollabPanel from '../../components/doc-collab/DocCollabPanel.vue'
 import { docKey, draftDocKey, useDocCollabStore } from '../../stores/docCollabStore'
 
+// One page per document: a new payment, a DRAFT (editable) or a submitted payment (read-only).
 const props = defineProps<{ id?: string }>()
-const isEdit = !!props.id
+const isNew = !props.id
 
 // Attachments (and comments, once saved): a new document collects them under a draft key until it is saved.
 const collab = useDocCollabStore()
-const collabKey = isEdit ? docKey('sales-payment', props.id!) : draftDocKey('sales-payment')
-let collabSaved = isEdit
+const collabKey = isNew ? draftDocKey('sales-payment') : docKey('sales-payment', props.id!)
+let collabSaved = !isNew
 onBeforeUnmount(() => {
   if (!collabSaved) collab.discard(collabKey)
 })
@@ -34,8 +40,12 @@ function closeTab() {
   tabsStore.closeTab(route.fullPath, router)
 }
 const submitting = ref(false)
-const pendingAction = ref<'draft' | 'submit' | 'save' | null>(null)
-const loading = ref(isEdit)
+const pendingAction = ref<'draft' | 'submit' | 'save' | 'unsubmit' | null>(null)
+const loading = ref(!isNew)
+
+const payment = ref<SalesPayment | null>(null)
+const status = computed(() => payment.value?.document_status)
+const readOnly = computed(() => !isNew && status.value !== 'DRAFT')
 
 const availableInvoices = ref<SalesInvoice[]>([])
 const selectedInvoiceIds = ref<number[]>([])
@@ -55,32 +65,35 @@ watch(selectedInvoiceIds, (ids) => {
   }
 })
 
+async function fill(p: SalesPayment) {
+  payment.value = p
+  form.payment_date = p.payment_date.slice(0, 10)
+  form.payment_method = p.payment_method ?? ''
+  form.notes = p.notes ?? ''
+  const prefill: Record<number, string> = {}
+  for (const alloc of p.allocations) {
+    await ensureInvoiceLoaded(alloc.sales_invoice_id)
+    prefill[alloc.sales_invoice_id] = alloc.amount
+  }
+  selectedInvoiceIds.value = p.allocations.map((a) => a.sales_invoice_id)
+  amountByInvoice.value = prefill
+}
+
+async function load() {
+  try {
+    await fill(await salesPaymentApi.get(Number(props.id)))
+  } catch (err) {
+    ElMessage.error(apiErrorMessage(err))
+  } finally {
+    loading.value = false
+  }
+}
+
 onMounted(async () => {
   availableInvoices.value = await salesInvoiceApi.listPickable()
 
-  if (isEdit && props.id) {
-    try {
-      const payment = await salesPaymentApi.get(Number(props.id))
-      if (payment.document_status !== 'DRAFT') {
-        ElMessage.warning('Only DRAFT payments can be edited')
-        router.replace({ name: 'sales-payments-detail', params: { id: props.id } })
-        return
-      }
-      form.payment_date = payment.payment_date.slice(0, 10)
-      form.payment_method = payment.payment_method ?? ''
-      form.notes = payment.notes ?? ''
-      const prefill: Record<number, string> = {}
-      for (const alloc of payment.allocations) {
-        await ensureInvoiceLoaded(alloc.sales_invoice_id)
-        prefill[alloc.sales_invoice_id] = alloc.amount
-      }
-      selectedInvoiceIds.value = payment.allocations.map((a) => a.sales_invoice_id)
-      amountByInvoice.value = prefill
-    } catch (err) {
-      ElMessage.error(apiErrorMessage(err))
-    } finally {
-      loading.value = false
-    }
+  if (!isNew) {
+    await load()
   } else {
     const preselect = route.query.sales_invoice_id
     if (preselect) {
@@ -100,7 +113,7 @@ const rows = computed<AllocationRow[]>(() =>
 )
 
 async function createPayment(allocations: { sales_invoice_id: number; amount: string }[], thenSubmit: boolean) {
-  let payment = await salesPaymentApi.create({
+  let created = await salesPaymentApi.create({
     company_id: companyStore.selectedCompanyId!,
     payment_date: form.payment_date,
     payment_method: form.payment_method,
@@ -108,25 +121,33 @@ async function createPayment(allocations: { sales_invoice_id: number; amount: st
     allocations,
   })
   if (!thenSubmit) {
-    ElMessage.success(`Created ${payment.payment_no}`)
-    return payment
+    ElMessage.success(`Created ${created.payment_no}`)
+    return created
   }
   try {
-    payment = await salesPaymentApi.submit(payment.id)
-    ElMessage.success(`Created and submitted ${payment.payment_no}`)
+    created = await salesPaymentApi.submit(created.id)
+    ElMessage.success(`Created and submitted ${created.payment_no}`)
   } catch (err) {
-    ElMessage.warning(`Created ${payment.payment_no} as a draft, but submit failed: ${apiErrorMessage(err)}`)
+    ElMessage.warning(`Created ${created.payment_no} as a draft, but submit failed: ${apiErrorMessage(err)}`)
   }
-  return payment
+  return created
+}
+
+async function confirm(message: string, title: string) {
+  try {
+    await ElMessageBox.confirm(message, title, { type: 'warning' })
+    return true
+  } catch {
+    return false
+  }
 }
 
 function actionFor(thenSubmit: boolean): 'draft' | 'submit' | 'save' {
-  if (isEdit) return 'save'
   if (thenSubmit) return 'submit'
-  return 'draft'
+  return isNew ? 'draft' : 'save'
 }
 
-async function submit(thenSubmit = false) {
+async function save(thenSubmit = false) {
   const allocations = Object.entries(amountByInvoice.value)
     .filter(([id, amt]) => Number(amt) > 0 && selectedInvoiceIds.value.includes(Number(id)))
     .map(([invoiceId, amount]) => ({ sales_invoice_id: Number(invoiceId), amount }))
@@ -134,35 +155,34 @@ async function submit(thenSubmit = false) {
     ElMessage.warning('Enter at least one allocation amount')
     return
   }
-  if (!isEdit && !companyStore.selectedCompanyId) {
+  if (isNew && !companyStore.selectedCompanyId) {
     ElMessage.warning('Select a company first')
     return
   }
-  if (thenSubmit) {
-    try {
-      await ElMessageBox.confirm('Create and submit this payment? It will be allocated to the selected invoice(s).', 'Confirm Submit', { type: 'warning' })
-    } catch {
-      return
-    }
-  }
+  if (thenSubmit && !(await confirm(`${isNew ? 'Create and submit' : 'Save and submit'} this payment? It will be allocated to the selected invoice(s).`, 'Confirm Submit'))) return
   submitting.value = true
   pendingAction.value = actionFor(thenSubmit)
   try {
-    if (isEdit && props.id) {
-      const payment = await salesPaymentApi.update(Number(props.id), {
-        payment_date: form.payment_date,
-        payment_method: form.payment_method,
-        notes: form.notes,
-        allocations,
-      })
-      ElMessage.success(`Updated ${payment.payment_no}`)
-      router.push({ name: 'sales-payments-detail', params: { id: payment.id } })
-    } else {
-      const payment = await createPayment(allocations, thenSubmit)
-      collab.moveThread(collabKey, docKey('sales-payment', payment.id))
+    if (isNew) {
+      const created = await createPayment(allocations, thenSubmit)
+      collab.moveThread(collabKey, docKey('sales-payment', created.id))
       collabSaved = true
-      router.push({ name: 'sales-payments-detail', params: { id: payment.id } })
+      router.push({ name: 'sales-payments-detail', params: { id: created.id } })
+      return
     }
+    let updated = await salesPaymentApi.update(Number(props.id), {
+      payment_date: form.payment_date,
+      payment_method: form.payment_method,
+      notes: form.notes,
+      allocations,
+    })
+    if (thenSubmit) {
+      updated = await salesPaymentApi.submit(updated.id)
+      ElMessage.success(`Submitted ${updated.payment_no} — allocated to invoice(s)`)
+    } else {
+      ElMessage.success(`Updated ${updated.payment_no}`)
+    }
+    await load()
   } catch (err) {
     ElMessage.error(apiErrorMessage(err))
   } finally {
@@ -170,23 +190,81 @@ async function submit(thenSubmit = false) {
     pendingAction.value = null
   }
 }
+
+async function unsubmit() {
+  if (!(await confirm('Unsubmit this payment? Its allocations will be reversed.', 'Confirm Unsubmit'))) return
+  submitting.value = true
+  pendingAction.value = 'unsubmit'
+  try {
+    await salesPaymentApi.unsubmit(Number(props.id))
+    ElMessage.success('Payment unsubmitted — allocations reversed')
+    await load()
+  } catch (err) {
+    ElMessage.error(apiErrorMessage(err))
+  } finally {
+    submitting.value = false
+    pendingAction.value = null
+  }
+}
+
+async function remove() {
+  if (!(await confirm('Delete this DRAFT payment?', 'Confirm'))) return
+  try {
+    await salesPaymentApi.remove(Number(props.id))
+    ElMessage.success('Payment deleted')
+    closeTab()
+  } catch (err) {
+    ElMessage.error(apiErrorMessage(err))
+  }
+}
+
+const docRef = computed<DocRef>(() => ({
+  no: payment.value?.payment_no ?? '',
+  type: 'Sales Payment',
+  status: status.value,
+  amount: Number(payment.value?.total_amount ?? 0),
+  date: payment.value?.payment_date,
+  party: undefined,
+  collabKey,
+}))
+
+function duplicate() {
+  router.push({ name: 'sales-payments-new', query: payment.value?.allocations[0] ? { sales_invoice_id: payment.value.allocations[0].sales_invoice_id } : {} })
+}
 </script>
 
 <template>
   <div class="page">
     <PageHeader
-      :title="isEdit ? 'Edit Sales Payment' : 'New Sales Payment'"
+      :title="isNew ? 'New Sales Payment' : (payment?.payment_no ?? 'Sales Payment')"
       :breadcrumb="{ label: 'Payments', to: '/sales-payments' }"
       show-back
-    />
+    >
+      <template v-if="status" #badges><StatusTag :status="status" /></template>
+      <template #actions>
+        <template v-if="isNew">
+          <el-button type="warning" plain :loading="pendingAction === 'draft'" :disabled="submitting" @click="save(false)">Create Draft</el-button>
+          <el-button type="primary" :loading="pendingAction === 'submit'" :disabled="submitting" @click="save(true)">
+            Create &amp; Submit
+          </el-button>
+        </template>
+        <template v-else-if="payment">
+          <el-button v-if="status === 'DRAFT'" type="danger" plain :icon="Delete" :disabled="submitting" @click="remove">Delete</el-button>
+          <el-button v-if="status === 'DRAFT'" :loading="pendingAction === 'save'" :disabled="submitting" @click="save(false)">Update</el-button>
+          <el-button v-if="status === 'DRAFT'" type="primary" :icon="Promotion" :loading="pendingAction === 'submit'" :disabled="submitting" @click="save(true)">Submit</el-button>
+          <el-button v-if="status === 'SUBMITTED'" type="warning" plain :icon="RefreshLeft" :loading="pendingAction === 'unsubmit'" :disabled="submitting" @click="unsubmit">Unsubmit</el-button>
+          <FormDocActions :doc="docRef" :actions="[]" :loading="pendingAction === 'submit'" @duplicate="duplicate" />
+        </template>
+      </template>
+    </PageHeader>
 
     <div class="card" v-loading="loading">
-      <el-form label-position="top" class="form-grid">
+      <el-form label-position="top" class="form-grid" :disabled="readOnly">
         <el-form-item label="Payment Date">
           <el-date-picker v-model="form.payment_date" type="date" value-format="YYYY-MM-DD" style="width: 100%" />
         </el-form-item>
         <el-form-item label="Method">
-          <el-input v-model="form.payment_method" placeholder="e.g. TRANSFER" />
+          <el-input v-model="form.payment_method" :placeholder="readOnly ? '' : 'e.g. TRANSFER'" />
         </el-form-item>
         <el-form-item label="Invoices" class="span-2">
           <el-select v-model="selectedInvoiceIds" multiple filterable placeholder="Select one or more invoices" style="width: 100%">
@@ -199,28 +277,36 @@ async function submit(thenSubmit = false) {
           </el-select>
         </el-form-item>
         <el-form-item label="Notes" class="span-2">
-          <el-input v-model="form.notes" type="textarea" :rows="1" placeholder="Optional" />
+          <el-input v-model="form.notes" type="textarea" :rows="1" :placeholder="readOnly ? '' : 'Optional'" />
         </el-form-item>
       </el-form>
 
       <div class="section-title">Allocate to invoices</div>
-      <InvoiceAllocationPicker :rows="rows" v-model="amountByInvoice" />
+      <template v-if="readOnly && payment">
+        <el-table :data="payment.allocations" size="small" border>
+          <el-table-column label="Invoice" min-width="220">
+            <template #default="{ row }">
+              <router-link :to="{ name: 'sales-invoices-detail', params: { id: row.sales_invoice_id } }" class="detail-product-name">
+                {{ row.sales_invoice?.invoice_no ?? row.sales_invoice_id }}
+              </router-link>
+            </template>
+          </el-table-column>
+          <el-table-column label="Invoice total" width="180" align="right">
+            <template #default="{ row }">{{ row.sales_invoice ? formatMoney(row.sales_invoice.total_amount) : '-' }}</template>
+          </el-table-column>
+          <el-table-column label="Amount" width="180" align="right">
+            <template #default="{ row }">{{ formatMoney(row.amount) }}</template>
+          </el-table-column>
+        </el-table>
+        <div class="grand-total">
+          <span class="grand-total-label">Total Allocated</span>
+          <span class="grand-total-value">{{ formatMoney(payment.total_amount) }}</span>
+        </div>
+      </template>
+      <InvoiceAllocationPicker v-else :rows="rows" v-model="amountByInvoice" />
 
       <div class="form-collab">
         <DocCollabPanel :doc-key="collabKey" />
-      </div>
-
-      <div class="form-footer">
-        <el-button @click="closeTab">Cancel</el-button>
-        <template v-if="isEdit">
-          <el-button type="primary" :loading="submitting" @click="submit()">Save Changes</el-button>
-        </template>
-        <template v-else>
-          <el-button type="warning" plain :loading="pendingAction === 'draft'" :disabled="submitting" @click="submit(false)">Create Draft</el-button>
-          <el-button type="primary" :loading="pendingAction === 'submit'" :disabled="submitting" @click="submit(true)">
-            Create &amp; Submit
-          </el-button>
-        </template>
       </div>
     </div>
   </div>

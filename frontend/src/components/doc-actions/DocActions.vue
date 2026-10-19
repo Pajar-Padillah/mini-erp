@@ -9,7 +9,7 @@ import DocCommentsDrawer from '../doc-collab/DocCommentsDrawer.vue'
 import { docKey } from '../../stores/docCollabStore'
 import { formatValue } from '../charts/chartUtils'
 import {
-  ACTION_LABELS, ALL_DOC_ACTIONS, approvalSteps, auditTrail, isSubmitted, journalLines, relatedDocs,
+  ACTION_LABELS, ALL_DOC_ACTIONS, approvalSteps, auditTrail, isDraft, isSubmitted, journalLines, postsJournal, relatedDocs,
   type DocAction, type DocRef,
 } from './docActionsData'
 
@@ -34,10 +34,15 @@ const menuPos = ref({ x: 0, y: 0 })
 const menuEl = ref<HTMLElement>()
 const doc = ref<DocRef | null>(null)
 
+// Show Journal only appears for document types that post to the ledger.
+const menuActions = computed(() =>
+  props.actions.filter((a) => a !== 'journal' || (doc.value && postsJournal(doc.value))),
+)
+
 function disabled(action: DocAction): string | undefined {
   if (!doc.value) return undefined
   if (action === 'cancel-approval' && !isSubmitted(doc.value)) return 'Not submitted for approval yet'
-  if (action === 'journal' && !journalLines(doc.value)) return 'This document does not post to the ledger'
+  if (action === 'journal' && isDraft(doc.value)) return 'The journal is posted when the document is submitted'
   return undefined
 }
 
@@ -148,7 +153,13 @@ function openRelated(to: string, current?: boolean) {
   router.push(to)
 }
 
-defineExpose({ openMenu })
+/** Open one action's panel directly (e.g. from a form header) without the floating menu. */
+function openPanel(action: DocAction, target: DocRef) {
+  doc.value = target
+  run(action)
+}
+
+defineExpose({ openMenu, openPanel })
 </script>
 
 <template>
@@ -167,7 +178,7 @@ defineExpose({ openMenu })
         <span class="row-menu-type">{{ doc.type }}</span>
       </div>
       <button
-        v-for="action in props.actions"
+        v-for="action in menuActions"
         :key="action"
         type="button"
         role="menuitem"

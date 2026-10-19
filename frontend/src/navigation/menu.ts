@@ -106,7 +106,7 @@ const ROUTED_MODULES: MenuModule[] = [
 
 export const STATIC_MODULES: MenuModule[] = [
   // Inventory pages are the functional WMS (see WMS_VIEWS in the router), not static mockups.
-  mod('inventory', 'Inventory', Box, [
+  mod('inventory', 'Warehouse & Inventory', Box, [
     ['Warehouse', [
       ['rack-map', 'Rack Map', MapLocation],
     ]],

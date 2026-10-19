@@ -2,30 +2,36 @@
 import { computed, onMounted, reactive, ref, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Delete, Plus } from '@element-plus/icons-vue'
+import { Delete, Plus, Promotion, RefreshLeft, Van } from '@element-plus/icons-vue'
 import { salesOrderApi } from '../../api/salesOrderApi'
 import { useCatalogStore } from '../../stores/catalogStore'
 import { useCompanyStore } from '../../stores/companyStore'
 import { useTabsStore } from '../../stores/tabsStore'
 import { apiErrorMessage } from '../../api/client'
-import { formatMoney } from '../../utils/format'
+import { formatMoney, formatQty } from '../../utils/format'
 import PageHeader from '../../components/PageHeader.vue'
+import StatusTag from '../../components/StatusTag.vue'
+import FormDocActions, { type NextAction } from '../../components/doc-actions/FormDocActions.vue'
+import type { DocRef } from '../../components/doc-actions/docActionsData'
 import DocCollabPanel from '../../components/doc-collab/DocCollabPanel.vue'
 import { docKey, draftDocKey, useDocCollabStore } from '../../stores/docCollabStore'
+import type { SalesOrder } from '../../types/salesOrder'
 
 interface FormLine {
   product_id: number | null
   qty_ordered: number
   unit_price: number
+  remaining_qty?: number
 }
 
+// One page per document: a new order, a DRAFT (editable) or a submitted order (read-only).
 const props = defineProps<{ id?: string }>()
-const isEdit = !!props.id
+const isNew = !props.id
 
 // Attachments (and comments, once saved): a new document collects them under a draft key until it is saved.
 const collab = useDocCollabStore()
-const collabKey = isEdit ? docKey('sales-order', props.id!) : draftDocKey('sales-order')
-let collabSaved = isEdit
+const collabKey = isNew ? draftDocKey('sales-order') : docKey('sales-order', props.id!)
+let collabSaved = !isNew
 onBeforeUnmount(() => {
   if (!collabSaved) collab.discard(collabKey)
 })
@@ -40,8 +46,12 @@ function closeTab() {
   tabsStore.closeTab(route.fullPath, router)
 }
 const submitting = ref(false)
-const pendingAction = ref<'draft' | 'submit' | 'save' | null>(null)
-const loading = ref(isEdit)
+const pendingAction = ref<'draft' | 'submit' | 'save' | 'unsubmit' | null>(null)
+const loading = ref(!isNew)
+
+const order = ref<SalesOrder | null>(null)
+const status = computed(() => order.value?.document_status)
+const readOnly = computed(() => !isNew && status.value !== 'DRAFT')
 
 const form = reactive({
   customer_name: '',
@@ -50,31 +60,48 @@ const form = reactive({
 })
 const items = ref<FormLine[]>([{ product_id: null, qty_ordered: 1, unit_price: 0 }])
 
+function fillForm(o: SalesOrder) {
+  form.customer_name = o.customer_name
+  form.order_date = o.order_date.slice(0, 10)
+  form.notes = o.notes ?? ''
+  items.value = o.items.map((it) => ({
+    product_id: it.product_id,
+    qty_ordered: Number(it.qty_ordered),
+    unit_price: Number(it.unit_price),
+    remaining_qty: Number(it.remaining_qty ?? it.qty_ordered),
+  }))
+}
+function fill(o: SalesOrder) {
+  order.value = o
+  fillForm(o)
+}
+
+async function load() {
+  try {
+    fill(await salesOrderApi.get(Number(props.id)))
+  } catch (err) {
+    ElMessage.error(apiErrorMessage(err))
+  } finally {
+    loading.value = false
+  }
+}
+
 onMounted(async () => {
   await catalogStore.loadProducts()
-  if (isEdit && props.id) {
-    try {
-      const order = await salesOrderApi.get(Number(props.id))
-      if (order.document_status !== 'DRAFT') {
-        ElMessage.warning('Only DRAFT orders can be edited')
-        router.replace({ name: 'sales-orders-detail', params: { id: props.id } })
-        return
-      }
-      form.customer_name = order.customer_name
-      form.order_date = order.order_date.slice(0, 10)
-      form.notes = order.notes ?? ''
-      items.value = order.items.map((it) => ({
-        product_id: it.product_id,
-        qty_ordered: Number(it.qty_ordered),
-        unit_price: Number(it.unit_price),
-      }))
-    } catch (err) {
-      ElMessage.error(apiErrorMessage(err))
-    } finally {
-      loading.value = false
-    }
-  }
+  if (!isNew) await load()
+  else if (route.query.copy) await loadCopy(Number(route.query.copy))
 })
+
+// Duplicate: a new order prefilled from an existing one (?copy=<id>).
+async function loadCopy(id: number) {
+  try {
+    const source = await salesOrderApi.get(id)
+    fillForm(source)
+    form.order_date = new Date().toISOString().slice(0, 10)
+  } catch (err) {
+    ElMessage.error(apiErrorMessage(err))
+  }
+}
 
 function lineTotal(row: FormLine) {
   return (row.qty_ordered || 0) * (row.unit_price || 0)
@@ -101,7 +128,7 @@ function buildLineItems() {
 }
 
 async function createOrder(lineItems: ReturnType<typeof buildLineItems>, thenSubmit: boolean) {
-  let order = await salesOrderApi.create({
+  let created = await salesOrderApi.create({
     company_id: companyStore.selectedCompanyId!,
     customer_name: form.customer_name,
     order_date: form.order_date,
@@ -109,26 +136,34 @@ async function createOrder(lineItems: ReturnType<typeof buildLineItems>, thenSub
     items: lineItems,
   })
   if (!thenSubmit) {
-    ElMessage.success(`Created ${order.order_no}`)
-    return order
+    ElMessage.success(`Created ${created.order_no}`)
+    return created
   }
   try {
-    order = await salesOrderApi.submit(order.id)
-    ElMessage.success(`Created and submitted ${order.order_no}`)
+    created = await salesOrderApi.submit(created.id)
+    ElMessage.success(`Created and submitted ${created.order_no}`)
   } catch (err) {
-    ElMessage.warning(`Created ${order.order_no} as a draft, but submit failed: ${apiErrorMessage(err)}`)
+    ElMessage.warning(`Created ${created.order_no} as a draft, but submit failed: ${apiErrorMessage(err)}`)
   }
-  return order
+  return created
+}
+
+async function confirm(message: string, title: string) {
+  try {
+    await ElMessageBox.confirm(message, title, { type: 'warning' })
+    return true
+  } catch {
+    return false
+  }
 }
 
 function actionFor(thenSubmit: boolean): 'draft' | 'submit' | 'save' {
-  if (isEdit) return 'save'
   if (thenSubmit) return 'submit'
-  return 'draft'
+  return isNew ? 'draft' : 'save'
 }
 
-async function submit(thenSubmit = false) {
-  if (!isEdit && !companyStore.selectedCompanyId) {
+async function save(thenSubmit = false) {
+  if (isNew && !companyStore.selectedCompanyId) {
     ElMessage.warning('Select a company first')
     return
   }
@@ -136,32 +171,31 @@ async function submit(thenSubmit = false) {
     ElMessage.warning('Select a product for every line')
     return
   }
-  if (thenSubmit) {
-    try {
-      await ElMessageBox.confirm('Create and submit this order? It will become ACTIVE and ready for delivery.', 'Confirm Submit', { type: 'warning' })
-    } catch {
-      return
-    }
-  }
+  if (thenSubmit && !(await confirm(`${isNew ? 'Create and submit' : 'Save and submit'} this order? It will become ACTIVE and ready for delivery.`, 'Confirm Submit'))) return
   submitting.value = true
   pendingAction.value = actionFor(thenSubmit)
   try {
     const lineItems = buildLineItems()
-    if (isEdit && props.id) {
-      const order = await salesOrderApi.update(Number(props.id), {
-        customer_name: form.customer_name,
-        order_date: form.order_date,
-        notes: form.notes,
-        items: lineItems,
-      })
-      ElMessage.success(`Updated ${order.order_no}`)
-      router.push({ name: 'sales-orders-detail', params: { id: order.id } })
-    } else {
-      const order = await createOrder(lineItems, thenSubmit)
-      collab.moveThread(collabKey, docKey('sales-order', order.id))
+    if (isNew) {
+      const created = await createOrder(lineItems, thenSubmit)
+      collab.moveThread(collabKey, docKey('sales-order', created.id))
       collabSaved = true
-      router.push({ name: 'sales-orders-detail', params: { id: order.id } })
+      router.push({ name: 'sales-orders-detail', params: { id: created.id } })
+      return
     }
+    let updated = await salesOrderApi.update(Number(props.id), {
+      customer_name: form.customer_name,
+      order_date: form.order_date,
+      notes: form.notes,
+      items: lineItems,
+    })
+    if (thenSubmit) {
+      updated = await salesOrderApi.submit(updated.id)
+      ElMessage.success(`Submitted ${updated.order_no} — now ACTIVE`)
+    } else {
+      ElMessage.success(`Updated ${updated.order_no}`)
+    }
+    await load()
   } catch (err) {
     ElMessage.error(apiErrorMessage(err))
   } finally {
@@ -169,18 +203,90 @@ async function submit(thenSubmit = false) {
     pendingAction.value = null
   }
 }
+
+async function unsubmit() {
+  if (!(await confirm('Unsubmit this order? It will go back to DRAFT.', 'Confirm Unsubmit'))) return
+  submitting.value = true
+  pendingAction.value = 'unsubmit'
+  try {
+    await salesOrderApi.unsubmit(Number(props.id))
+    ElMessage.success('Order unsubmitted — back to DRAFT')
+    await load()
+  } catch (err) {
+    ElMessage.error(apiErrorMessage(err))
+  } finally {
+    submitting.value = false
+    pendingAction.value = null
+  }
+}
+
+async function remove() {
+  if (!(await confirm('Delete this DRAFT order?', 'Confirm'))) return
+  try {
+    await salesOrderApi.remove(Number(props.id))
+    ElMessage.success('Order deleted')
+    closeTab()
+  } catch (err) {
+    ElMessage.error(apiErrorMessage(err))
+  }
+}
+
+function createDelivery() {
+  router.push({ name: 'sales-deliveries-new', query: { sales_order_id: props.id } })
+}
+
+const docRef = computed<DocRef>(() => ({
+  no: order.value?.order_no ?? '',
+  type: 'Sales Order',
+  status: status.value,
+  amount: Number(order.value?.total_amount ?? 0),
+  date: order.value?.order_date,
+  party: order.value?.customer_name,
+  collabKey,
+}))
+
+const nextActions = computed<NextAction[]>(() => {
+  const list: NextAction[] = []
+  if (status.value === 'ACTIVE' || status.value === 'PROCESSED') list.push({ key: 'create-delivery', label: 'Create Delivery', icon: Van })
+  return list
+})
+
+function onNextAction(key: string) {
+  if (key === 'create-delivery') createDelivery()
+}
+
+function duplicate() {
+  router.push({ name: 'sales-orders-new', query: { copy: props.id } })
+}
 </script>
 
 <template>
   <div class="page">
     <PageHeader
-      :title="isEdit ? 'Edit Sales Order' : 'New Sales Order'"
+      :title="isNew ? 'New Sales Order' : (order?.order_no ?? 'Sales Order')"
       :breadcrumb="{ label: 'Sales Orders', to: '/sales-orders' }"
       show-back
-    />
+    >
+      <template v-if="status" #badges><StatusTag :status="status" /></template>
+      <template #actions>
+        <template v-if="isNew">
+          <el-button type="warning" plain :loading="pendingAction === 'draft'" :disabled="submitting" @click="save(false)">Create Draft</el-button>
+          <el-button type="primary" :loading="pendingAction === 'submit'" :disabled="submitting" @click="save(true)">
+            Create &amp; Submit
+          </el-button>
+        </template>
+        <template v-else-if="order">
+          <el-button v-if="status === 'DRAFT'" type="danger" plain :icon="Delete" :disabled="submitting" @click="remove">Delete</el-button>
+          <el-button v-if="status === 'DRAFT'" :loading="pendingAction === 'save'" :disabled="submitting" @click="save(false)">Update</el-button>
+          <el-button v-if="status === 'DRAFT'" type="primary" :icon="Promotion" :loading="pendingAction === 'submit'" :disabled="submitting" @click="save(true)">Submit</el-button>
+          <el-button v-if="status === 'ACTIVE'" type="warning" plain :icon="RefreshLeft" :loading="pendingAction === 'unsubmit'" :disabled="submitting" @click="unsubmit">Unsubmit</el-button>
+          <FormDocActions :doc="docRef" :actions="nextActions" :loading="pendingAction === 'submit'" @select="onNextAction" @duplicate="duplicate" />
+        </template>
+      </template>
+    </PageHeader>
 
     <div class="card" v-loading="loading">
-      <el-form label-position="top" class="form-grid">
+      <el-form label-position="top" class="form-grid" :disabled="readOnly">
         <el-form-item label="Customer">
           <el-input v-model="form.customer_name" placeholder="e.g. Toko Kosmetik Sukses Mandiri" />
         </el-form-item>
@@ -188,30 +294,33 @@ async function submit(thenSubmit = false) {
           <el-date-picker v-model="form.order_date" type="date" value-format="YYYY-MM-DD" style="width: 100%" />
         </el-form-item>
         <el-form-item label="Notes" class="span-2">
-          <el-input v-model="form.notes" type="textarea" :rows="2" placeholder="Optional" />
+          <el-input v-model="form.notes" type="textarea" :rows="2" :placeholder="readOnly ? '' : 'Optional'" />
         </el-form-item>
       </el-form>
 
       <div class="section-header">
         <div class="section-title">Items</div>
-        <el-button size="small" :icon="Plus" @click="addRow">Add Row</el-button>
+        <el-button v-if="!readOnly" size="small" :icon="Plus" @click="addRow">Add Row</el-button>
       </div>
       <el-table :data="items" size="small">
         <el-table-column label="Product" min-width="260">
           <template #default="{ row, $index }">
-            <el-select v-model="row.product_id" filterable placeholder="Select product" style="width: 100%" @change="(v: number) => onProductChange($index, v)">
+            <el-select v-model="row.product_id" filterable placeholder="Select product" style="width: 100%" :disabled="readOnly" @change="(v: number) => onProductChange($index, v)">
               <el-option v-for="p in catalogStore.products" :key="p.id" :label="p.name" :value="p.id" />
             </el-select>
           </template>
         </el-table-column>
         <el-table-column label="Qty" width="160">
           <template #default="{ row }">
-            <el-input-number v-model="row.qty_ordered" :min="0.001" :controls="false" style="width: 100%" />
+            <el-input-number v-model="row.qty_ordered" :min="0.001" :controls="false" style="width: 100%" :disabled="readOnly" />
           </template>
+        </el-table-column>
+        <el-table-column v-if="readOnly" label="Remaining" width="120" align="right">
+          <template #default="{ row }">{{ formatQty(row.remaining_qty ?? row.qty_ordered) }}</template>
         </el-table-column>
         <el-table-column label="Price" width="180">
           <template #default="{ row }">
-            <el-input-number v-model="row.unit_price" :min="0" :controls="false" style="width: 100%" />
+            <el-input-number v-model="row.unit_price" :min="0" :controls="false" style="width: 100%" :disabled="readOnly" />
           </template>
         </el-table-column>
         <el-table-column label="Total" width="180" align="right">
@@ -219,7 +328,7 @@ async function submit(thenSubmit = false) {
             {{ formatMoney(lineTotal(row)) }}
           </template>
         </el-table-column>
-        <el-table-column label="" width="56" align="center">
+        <el-table-column v-if="!readOnly" label="" width="56" align="center">
           <template #default="{ $index }">
             <el-tooltip content="Delete row" placement="top">
               <el-button
@@ -243,19 +352,6 @@ async function submit(thenSubmit = false) {
 
       <div class="form-collab">
         <DocCollabPanel :doc-key="collabKey" />
-      </div>
-
-      <div class="form-footer">
-        <el-button @click="closeTab">Cancel</el-button>
-        <template v-if="isEdit">
-          <el-button type="primary" :loading="submitting" @click="submit()">Save Changes</el-button>
-        </template>
-        <template v-else>
-          <el-button type="warning" plain :loading="pendingAction === 'draft'" :disabled="submitting" @click="submit(false)">Create Draft</el-button>
-          <el-button type="primary" :loading="pendingAction === 'submit'" :disabled="submitting" @click="submit(true)">
-            Create &amp; Submit
-          </el-button>
-        </template>
       </div>
     </div>
   </div>

@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ArrowRight, Bell, ChatDotRound, Tickets } from '@element-plus/icons-vue'
 import { useChatStore } from '../stores/chatStore'
+import { tableLabel, useApprovalStore, type ApprovalRequest } from '../stores/approvalStore'
 
 const router = useRouter()
 const route = useRoute()
@@ -11,23 +12,20 @@ const chat = useChatStore()
 const approvalListOpen = ref(false)
 const notificationsOpen = ref(false)
 
-const approvals = [
-  {
-    module: 'Payment Request',
-    reference: 'PR-2025-004',
-    requester: 'Sarah Johnson',
-  },
-  {
-    module: 'Purchase Order',
-    reference: 'PO-2025-018',
-    requester: 'Michael Chen',
-  },
-  {
-    module: 'Payment Request',
-    reference: 'PR-2025-006',
-    requester: 'Emily Davis',
-  },
-]
+const approvalStore = useApprovalStore()
+const pendingCount = computed(() => approvalStore.pending.length)
+// The dropdown previews the latest few; Show more opens the full Pending Approval List.
+const approvals = computed(() => approvalStore.pending.slice(0, 3))
+
+function openApproval(approval: ApprovalRequest) {
+  approvalListOpen.value = false
+  router.push({ name: 'pending-approvals-detail', params: { id: approval.id } })
+}
+
+function showAllApprovals() {
+  approvalListOpen.value = false
+  router.push({ name: 'pending-approvals' })
+}
 
 const notifications = [
   {
@@ -86,9 +84,9 @@ const notifications = [
       popper-class="nav-quick-popover"
     >
       <template #reference>
-        <button class="nav-icon-btn" type="button" aria-label="Approval list, 3 pending" title="Approval list">
+        <button class="nav-icon-btn" type="button" :aria-label="`Approval list, ${pendingCount} pending`" title="Approval list">
           <el-icon><Tickets /></el-icon>
-          <span class="nav-icon-count">{{ approvals.length }}</span>
+          <span v-if="pendingCount" class="nav-icon-count">{{ pendingCount }}</span>
         </button>
       </template>
       <div class="nav-quick-panel">
@@ -97,25 +95,28 @@ const notifications = [
             <span class="nav-quick-eyebrow">WORKFLOW</span>
             <h3>Approval List</h3>
           </div>
-          <span class="nav-quick-total">{{ approvals.length }} pending</span>
+          <span class="nav-quick-total">{{ pendingCount }} pending</span>
         </div>
         <div class="nav-quick-list">
-          <div
+          <button
             v-for="approval in approvals"
-            :key="approval.reference"
+            :key="approval.id"
+            type="button"
             class="nav-quick-item"
+            @click="openApproval(approval)"
           >
             <span class="nav-quick-item-icon is-pending"><el-icon><Tickets /></el-icon></span>
             <span class="nav-quick-item-content">
-              <span class="nav-quick-item-title">{{ approval.module }} <span>{{ approval.reference }}</span></span>
-              <span class="nav-quick-item-requester">Request by {{ approval.requester }}</span>
+              <span class="nav-quick-item-title">{{ tableLabel(approval.table) }} <span>{{ approval.no }}</span></span>
+              <span class="nav-quick-item-requester">Request by {{ approval.requestedBy }}</span>
             </span>
             <el-icon class="nav-quick-item-chevron" aria-hidden="true"><ArrowRight /></el-icon>
-          </div>
+          </button>
+          <div v-if="!approvals.length" class="nav-quick-empty">Nothing waiting for your approval.</div>
         </div>
         <div class="nav-quick-panel-footer">
           <span>Pending approval requests</span>
-          <button class="nav-quick-show-more" type="button">Show more</button>
+          <button class="nav-quick-show-more" type="button" @click="showAllApprovals">Show more</button>
         </div>
       </div>
     </el-popover>

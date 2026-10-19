@@ -35,6 +35,10 @@ function printSheet(d: Inbound) {
 const page = ref(1)
 const pageSize = 10
 const expanded = ref<string[]>([])
+function toggleExpand(d: Inbound) {
+  const key = String(d.id)
+  expanded.value = expanded.value.includes(key) ? expanded.value.filter((k) => k !== key) : [...expanded.value, key]
+}
 
 const sorted = computed(() => [...store.inbound].sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id))
 const { filters, fieldOptions, filtered, reset, refresh, refreshing } = useListFilter(() => sorted.value, {
@@ -255,7 +259,7 @@ watch(() => route.query.no, applyQuery)
       />
 
       <el-table :data="paged" :row-key="(r: Inbound) => String(r.id)" :expand-row-keys="expanded" empty-text="No inbound documents">
-        <el-table-column type="expand">
+        <el-table-column type="expand" width="1" class-name="wms-expand-col">
           <template #default="{ row }">
             <div class="wms-expand">
               <el-table :data="row.items" size="small">
@@ -301,8 +305,10 @@ watch(() => route.query.no, applyQuery)
         </el-table-column>
         <el-table-column label="Delivery note" min-width="160">
           <template #default="{ row }">
-            <div class="wms-strong">{{ row.no }}</div>
-            <div v-if="row.poRef" class="wms-hint">PO {{ row.poRef }}</div>
+            <div class="wms-doc-toggle" title="Show details" @click="toggleExpand(row)">
+              <div class="wms-strong wms-doc-link">{{ row.no }}</div>
+              <div v-if="row.poRef" class="wms-hint">PO {{ row.poRef }}</div>
+            </div>
           </template>
         </el-table-column>
         <el-table-column label="Supplier" min-width="180">
@@ -504,8 +510,19 @@ watch(() => route.query.no, applyQuery)
   margin-left: 0;
 }
 
+:deep(.wms-expand-col .cell) {
+  display: none;
+}
+.wms-doc-toggle {
+  cursor: pointer;
+}
+.wms-doc-toggle:hover .wms-doc-link {
+  color: var(--el-color-primary);
+  text-decoration: underline;
+}
+
 .wms-expand {
-  padding: 6px 16px 10px 48px;
+  padding: 6px 16px 10px 16px;
 }
 .wms-expand-collab {
   margin-top: 12px;

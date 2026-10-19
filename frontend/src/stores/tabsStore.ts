@@ -27,22 +27,20 @@ const TITLES: Record<string, string> = {
   'purchase-invoices-list': 'Purchase Invoices',
   'purchase-payments-list': 'Purchase Payments',
   'purchase-returns-list': 'Purchase Returns',
+  'pending-approvals': 'Pending Approval List',
+  'pending-approvals-detail': 'Approval',
   'sales-orders-list': 'Sales Orders',
   'sales-orders-new': 'New Sales Order',
-  'sales-orders-edit': 'Sales Order - Edit',
-  'sales-orders-detail': 'Sales Order - Detail',
+  'sales-orders-detail': 'Sales Order',
   'sales-deliveries-list': 'Sales Deliveries',
   'sales-deliveries-new': 'New Delivery',
-  'sales-deliveries-edit': 'Sales Delivery - Edit',
-  'sales-deliveries-detail': 'Sales Delivery - Detail',
+  'sales-deliveries-detail': 'Sales Delivery',
   'sales-invoices-list': 'Sales Invoices',
   'sales-invoices-new': 'New Invoice',
-  'sales-invoices-edit': 'Sales Invoice - Edit',
-  'sales-invoices-detail': 'Sales Invoice - Detail',
+  'sales-invoices-detail': 'Sales Invoice',
   'sales-payments-list': 'Sales Payments',
   'sales-payments-new': 'New Payment',
-  'sales-payments-edit': 'Sales Payment - Edit',
-  'sales-payments-detail': 'Sales Payment - Detail',
+  'sales-payments-detail': 'Sales Payment',
 }
 
 function titleFor(route: RouteLocationNormalized): string {
@@ -54,6 +52,7 @@ function iconFor(route: RouteLocationNormalized): AppTab['icon'] {
   const name = route.name?.toString() ?? ''
   if (route.meta.title && route.meta.staticKey) return String(route.meta.staticKey)
   if (name === 'chat') return 'chat'
+  if (name.startsWith('pending-approvals')) return 'approval'
   if (name === 'customers-list') return 'customer'
   if (name === 'suppliers-list') return 'supplier'
   if (name === 'products-list') return 'product'

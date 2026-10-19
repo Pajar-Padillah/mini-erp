@@ -10,13 +10,13 @@ export interface ChartDatum {
 }
 
 /** Categorical order, validated for CVD separation on the white card surface. */
-export const SERIES_COLORS = ['#0878bd', '#eb6834', '#1baf7a', '#eda100']
+export const SERIES_COLORS = ['#003366', '#eb6834', '#1baf7a', '#eda100']
 
 /** Status colors for document-state data (always shown with a text label). */
 export const STATUS_COLORS = {
   good: '#16a34a',
   warning: '#e5a600',
-  info: '#0878bd',
+  info: '#003366',
   critical: '#ef4444',
   neutral: '#91a8ba',
 }
