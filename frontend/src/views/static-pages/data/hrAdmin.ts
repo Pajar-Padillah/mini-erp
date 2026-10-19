@@ -60,7 +60,7 @@ export const HR_ADMIN_PAGES: Record<string, StaticPageConfig> = {
       { prop: 'status', label: 'Status', width: 130, type: 'status' },
     ],
     rows: [
-      { code: 'EMP-0128', name: 'Rizky Ramadhan', position: 'Production Operator', department: 'Production', join_date: daysAgo(5), employment_type: 'Contract', status: 'PROBATION' },
+      { code: 'EMP-0128', name: 'James Walker', position: 'Production Operator', department: 'Production', join_date: daysAgo(5), employment_type: 'Contract', status: 'PROBATION' },
       { code: 'EMP-0127', name: 'Putri Anggraini', position: 'Sales Executive', department: 'Sales & Marketing', join_date: daysAgo(12), employment_type: 'Contract', status: 'PROBATION' },
       { code: 'EMP-0126', name: 'Bayu Saputra', position: 'Warehouse Staff', department: 'Warehouse', join_date: daysAgo(15), employment_type: 'Contract', status: 'PROBATION' },
       { code: 'EMP-0098', name: 'Fajar Nugroho', position: 'IT Support Lead', department: 'IT', join_date: '2022-03-14', employment_type: 'Permanent', status: 'ACTIVE' },
@@ -120,7 +120,7 @@ export const HR_ADMIN_PAGES: Record<string, StaticPageConfig> = {
     ],
     rows: [
       { date: daysAgo(0), employee: 'Siti Rahma', department: 'Production', shift: 'Morning (07-15)', check_in: '06:52', check_out: '15:04', work_hours: 8, status: 'PRESENT' },
-      { date: daysAgo(0), employee: 'Rizky Ramadhan', department: 'Production', shift: 'Morning (07-15)', check_in: '07:18', check_out: '15:02', work_hours: 7.7, status: 'LATE' },
+      { date: daysAgo(0), employee: 'James Walker', department: 'Production', shift: 'Morning (07-15)', check_in: '07:18', check_out: '15:02', work_hours: 7.7, status: 'LATE' },
       { date: daysAgo(0), employee: 'Andi Pratama', department: 'Warehouse', shift: 'Office (08-17)', check_in: '07:55', check_out: '17:06', work_hours: 8, status: 'PRESENT' },
       { date: daysAgo(0), employee: 'Putri Anggraini', department: 'Sales & Marketing', shift: 'Office (08-17)', check_in: '-', check_out: '-', work_hours: 0, status: 'ON_LEAVE' },
       { date: daysAgo(1), employee: 'Bayu Saputra', department: 'Warehouse', shift: 'Afternoon (15-23)', check_in: '-', check_out: '-', work_hours: 0, status: 'ABSENT' },
@@ -148,7 +148,7 @@ export const HR_ADMIN_PAGES: Record<string, StaticPageConfig> = {
     ],
     rows: [
       { no: docNo('LV', 14), employee: 'Hendra Gunawan', leave_type: 'Annual Leave', date: daysAgo(0), start_date: daysAgo(-10), end_date: daysAgo(-8), days: 3, status: 'PENDING' },
-      { no: docNo('LV', 13), employee: 'Rizky Ramadhan', leave_type: 'Sick Leave', date: daysAgo(1), start_date: daysAgo(1), end_date: daysAgo(1), days: 1, status: 'PENDING' },
+      { no: docNo('LV', 13), employee: 'James Walker', leave_type: 'Sick Leave', date: daysAgo(1), start_date: daysAgo(1), end_date: daysAgo(1), days: 1, status: 'PENDING' },
       { no: docNo('LV', 12), employee: 'Putri Anggraini', leave_type: 'Annual Leave', date: daysAgo(3), start_date: daysAgo(0), end_date: daysAgo(-1), days: 2, status: 'APPROVED' },
       { no: docNo('LV', 11), employee: 'Dewi Lestari', leave_type: 'Marriage Leave', date: daysAgo(5), start_date: daysAgo(-20), end_date: daysAgo(-18), days: 3, status: 'APPROVED' },
       { no: docNo('LV', 10), employee: 'Bayu Saputra', leave_type: 'Annual Leave', date: daysAgo(6), start_date: daysAgo(2), end_date: daysAgo(1), days: 2, status: 'REJECTED' },
@@ -174,7 +174,7 @@ export const HR_ADMIN_PAGES: Record<string, StaticPageConfig> = {
     ],
     rows: [
       { no: docNo('OT', 11), employee: 'Siti Rahma', department: 'Production', date: daysAgo(0), hours: 3, amount: 412000, status: 'PENDING' },
-      { no: docNo('OT', 10), employee: 'Rizky Ramadhan', department: 'Production', date: daysAgo(1), hours: 2, amount: 186000, status: 'PENDING' },
+      { no: docNo('OT', 10), employee: 'James Walker', department: 'Production', date: daysAgo(1), hours: 2, amount: 186000, status: 'PENDING' },
       { no: docNo('OT', 9), employee: 'Andi Pratama', department: 'Warehouse', date: daysAgo(2), hours: 4, amount: 498000, status: 'APPROVED' },
       { no: docNo('OT', 8), employee: 'Fajar Nugroho', department: 'IT', date: daysAgo(4), hours: 5, amount: 735000, status: 'APPROVED' },
       { no: docNo('OT', 7), employee: 'Bayu Saputra', department: 'Warehouse', date: daysAgo(6), hours: 2, amount: 172000, status: 'REJECTED' },
@@ -288,7 +288,7 @@ export const HR_ADMIN_PAGES: Record<string, StaticPageConfig> = {
       { no: docNo('PS', 125), employee: 'Siti Rahma', period: 'October 2026', date: daysAgo(0), gross: 9800000, deductions: 590000, net: 9210000, status: 'DRAFT' },
       { no: docNo('PS', 124), employee: 'Andi Pratama', period: 'October 2026', date: daysAgo(0), gross: 8900000, deductions: 520000, net: 8380000, status: 'DRAFT' },
       { no: docNo('PS', 18), employee: 'Agus Setiawan', period: 'Final Pay', date: daysAgo(12), gross: 12600000, deductions: 1100000, net: 11500000, status: 'PAID' },
-      { no: docNo('PS', 17), employee: 'Rizky Ramadhan', period: 'October 2026 OT', date: daysAgo(2), gross: 186000, deductions: 0, net: 186000, status: 'PUBLISHED' },
+      { no: docNo('PS', 17), employee: 'James Walker', period: 'October 2026 OT', date: daysAgo(2), gross: 186000, deductions: 0, net: 186000, status: 'PUBLISHED' },
       { no: docNo('PS', 16), employee: 'Andi Pratama', period: 'October 2026 OT', date: daysAgo(2), gross: 498000, deductions: 0, net: 498000, status: 'PUBLISHED' },
     ],
   },
@@ -343,7 +343,7 @@ export const HR_ADMIN_PAGES: Record<string, StaticPageConfig> = {
     ],
     rows: [
       { no: docNo('ONB', 6), employee: 'Lukman Hakim', position: 'Warehouse Staff', date: daysAgo(-3), buddy: 'Andi Pratama', progress: 0, status: 'NOT_STARTED' },
-      { no: docNo('ONB', 5), employee: 'Rizky Ramadhan', position: 'Production Operator', date: daysAgo(5), buddy: 'Siti Rahma', progress: 45, status: 'IN_PROGRESS' },
+      { no: docNo('ONB', 5), employee: 'James Walker', position: 'Production Operator', date: daysAgo(5), buddy: 'Siti Rahma', progress: 45, status: 'IN_PROGRESS' },
       { no: docNo('ONB', 4), employee: 'Putri Anggraini', position: 'Sales Executive', date: daysAgo(12), buddy: 'Taufik Hidayat', progress: 70, status: 'IN_PROGRESS' },
       { no: docNo('ONB', 3), employee: 'Bayu Saputra', position: 'Warehouse Staff', date: daysAgo(15), buddy: 'Andi Pratama', progress: 85, status: 'IN_PROGRESS' },
       { no: docNo('ONB', 2), employee: 'Nadia Safitri', position: 'HR Generalist', date: daysAgo(19), buddy: 'Rina Wulandari', progress: 100, status: 'COMPLETED' },
@@ -507,7 +507,7 @@ export const HR_ADMIN_PAGES: Record<string, StaticPageConfig> = {
       { prop: 'status', label: 'Status', width: 120, type: 'status' },
     ],
     rows: [
-      { no: docNo('LN', 6), employee: 'Rizky Ramadhan', date: daysAgo(0), amount: 3000000, installments: 6, monthly: 500000, outstanding: 3000000, status: 'PENDING' },
+      { no: docNo('LN', 6), employee: 'James Walker', date: daysAgo(0), amount: 3000000, installments: 6, monthly: 500000, outstanding: 3000000, status: 'PENDING' },
       { no: docNo('LN', 5), employee: 'Andi Pratama', date: daysAgo(4), amount: 12000000, installments: 12, monthly: 1000000, outstanding: 12000000, status: 'ACTIVE' },
       { no: docNo('LN', 4), employee: 'Yusuf Hidayat', date: daysAgo(7), amount: 6000000, installments: 6, monthly: 1000000, outstanding: 6000000, status: 'ACTIVE' },
       { no: docNo('LN', 3), employee: 'Bayu Saputra', date: daysAgo(9), amount: 8000000, installments: 4, monthly: 2000000, outstanding: 0, status: 'REJECTED' },
@@ -531,7 +531,7 @@ export const HR_ADMIN_PAGES: Record<string, StaticPageConfig> = {
     rows: [
       { no: docNo('ESS', 15), employee: 'Putri Anggraini', request_type: 'Data Change', description: 'Update bank account to BCA', date: daysAgo(0), status: 'PENDING' },
       { no: docNo('ESS', 14), employee: 'Hendra Gunawan', request_type: 'Leave', description: 'Annual leave 3 days', date: daysAgo(0), status: 'PENDING' },
-      { no: docNo('ESS', 13), employee: 'Rizky Ramadhan', request_type: 'Loan', description: 'Personal loan Rp 3.000.000', date: daysAgo(0), status: 'PENDING' },
+      { no: docNo('ESS', 13), employee: 'James Walker', request_type: 'Loan', description: 'Personal loan Rp 3.000.000', date: daysAgo(0), status: 'PENDING' },
       { no: docNo('ESS', 12), employee: 'Fajar Nugroho', request_type: 'Certificate', description: 'Employment certificate for KPR', date: daysAgo(2), status: 'APPROVED' },
       { no: docNo('ESS', 11), employee: 'Siti Rahma', request_type: 'Overtime', description: 'Overtime 3 hours - urgent order', date: daysAgo(0), status: 'PENDING' },
       { no: docNo('ESS', 10), employee: 'Bayu Saputra', request_type: 'Shift Swap', description: 'Swap afternoon shift with Lukman', date: daysAgo(5), status: 'REJECTED' },

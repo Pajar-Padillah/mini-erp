@@ -52,7 +52,7 @@ export const APPROVAL_STATUS_LABEL: Record<DecidedStatus, string> = {
   REJECTED: 'Rejected',
 }
 
-const ME = 'Pajar Padillah'
+const ME = 'Oliver Bennett'
 
 type Seed = Omit<ApprovalRequest, 'id' | 'status' | 'approvalDate' | 'updatedAt' | 'history' | 'level'> & {
   status?: ApprovalStatus

@@ -14,7 +14,7 @@ const activeTab = ref<'profile' | 'password'>('profile')
 
 const profile = reactive({
   name: props.name,
-  email: auth.user?.email ?? 'pajar.padillah@example.com',
+  email: auth.user?.email ?? 'oliver.bennett@example.com',
   phone: '+62 812-3456-7890',
   role: 'Fullstack Developer',
   department: 'Information Technology',

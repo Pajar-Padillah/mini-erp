@@ -13,8 +13,8 @@ const auth = useAuthStore()
 const tabsStore = useTabsStore()
 
 const props = withDefaults(defineProps<{ name?: string }>(), { name: undefined })
-const name = computed(() => props.name ?? auth.user?.name ?? 'Pajar Padillah')
-const email = computed(() => auth.user?.email ?? 'pajar.padillah@example.com')
+const name = computed(() => props.name ?? auth.user?.name ?? 'Oliver Bennett')
+const email = computed(() => auth.user?.email ?? 'oliver.bennett@example.com')
 
 const initials = computed(() =>
   name.value

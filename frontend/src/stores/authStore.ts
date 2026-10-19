@@ -42,7 +42,7 @@ export const useAuthStore = defineStore('auth', {
     async login(email: string, _password: string, remember: boolean) {
       // Simulate a network round-trip so the button's loading state is visible.
       await new Promise((resolve) => setTimeout(resolve, 600))
-      this.user = { name: 'Pajar Padillah', email: email.trim() }
+      this.user = { name: 'Oliver Bennett', email: email.trim() }
       clearStoredUser()
       try {
         ;(remember ? localStorage : sessionStorage).setItem(STORAGE_KEY, JSON.stringify(this.user))
