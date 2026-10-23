@@ -2,7 +2,7 @@
 import { computed, onMounted, reactive, ref, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Delete, Plus, Promotion, RefreshLeft, Van } from '@element-plus/icons-vue'
+import { Delete, Plus, Promotion, RefreshLeft, Tickets, Van } from '@element-plus/icons-vue'
 import { salesOrderApi } from '../../api/salesOrderApi'
 import { useCatalogStore } from '../../stores/catalogStore'
 import { useCompanyStore } from '../../stores/companyStore'
@@ -247,12 +247,16 @@ const docRef = computed<DocRef>(() => ({
 
 const nextActions = computed<NextAction[]>(() => {
   const list: NextAction[] = []
-  if (status.value === 'ACTIVE' || status.value === 'PROCESSED') list.push({ key: 'create-delivery', label: 'Create Delivery', icon: Van })
+  if (status.value === 'ACTIVE' || status.value === 'PROCESSED') {
+    list.push({ key: 'create-picking', label: 'Create Picking List', icon: Tickets })
+    list.push({ key: 'create-delivery', label: 'Create Delivery', icon: Van })
+  }
   return list
 })
 
 function onNextAction(key: string) {
   if (key === 'create-delivery') createDelivery()
+  if (key === 'create-picking') router.push({ path: '/inventory/picking-list', query: { so: props.id } })
 }
 
 function duplicate() {

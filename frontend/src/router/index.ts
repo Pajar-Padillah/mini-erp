@@ -15,6 +15,9 @@ const FUNCTIONAL_VIEWS: Record<string, string> = {
   'batch-serial': 'wms/BatchSerialView',
   'inbound-receiving': 'wms/InboundReceivingView',
   'outbound-picking': 'wms/OutboundPickingView',
+  'picking-list': 'wms/PickingListView',
+  'packing-list': 'wms/PackingListView',
+  'checking-list': 'wms/CheckingListView',
   'warehouse-tasks': 'wms/WarehouseTasksView',
   'task-scan': 'wms/TaskScanView',
   'stock-transfer': 'wms/StockTransferView',
@@ -54,8 +57,10 @@ const router = createRouter({
 
     ...([
       'sales-quotes',
+      'sales-returns',
       'purchase-requests',
       'purchase-orders',
+      'purchase-receipts',
       'purchase-invoices',
       'purchase-payments',
       'purchase-returns',

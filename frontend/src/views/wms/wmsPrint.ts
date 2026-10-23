@@ -12,6 +12,7 @@ import {
   type Shipment,
   type Transfer,
 } from '../../stores/wmsStore'
+import type { PackingList } from '../../stores/packingStore'
 import { expiryLabel, fmtDate, fmtDateTime, fmtQty, fmtRp } from './wmsUi'
 
 const COMPANY = 'PT Sant Group Indonesia'
@@ -477,4 +478,52 @@ ${top || '<p class="empty">No stock on shelves.</p>'}
 </body></html>`)
   w.document.close()
   return true
+}
+
+// ---------------------------------------------------------------- packing list
+/** Packing list: carton-by-carton contents of one outbound shipment, with a check box per line. */
+export function printPackingList(pl: PackingList): boolean {
+  const store = useWmsStore()
+  const rows: Row[] = []
+  pl.cartons.forEach((c) => {
+    const lines = pl.lines.filter((l) => l.carton === c.no)
+    const qty = lines.reduce((a, l) => a + l.qty, 0)
+    const extra = [c.weight ? `${c.weight} kg` : '', c.dims ? `${c.dims} cm` : ''].filter(Boolean).join(' · ')
+    rows.push({ group: `Carton #${c.no} of ${pl.cartons.length} – ${fmtQty(qty)} pcs${extra ? ` · ${extra}` : ''}` })
+    lines.forEach((l, i) => rows.push({
+      cells: [String(i + 1), esc(l.sku), esc(store.skuName(l.sku)), esc(l.batch), esc(expTxt(l.exp)), `<b>${esc(fmtQty(l.qty))}</b>`, esc(store.skuUnit(l.sku)), CHECK],
+    }))
+  })
+  const total = pl.lines.reduce((a, l) => a + l.qty, 0)
+  const weight = pl.cartons.reduce((a, c) => a + (Number(c.weight) || 0), 0)
+  const notes: string[] = []
+  if (pl.status === 'DRAFT') notes.push('Draft – packing is not finished yet.')
+  if (pl.status === 'DISCREPANCY') notes.push(`Checking found a discrepancy${pl.checkNote ? `: ${pl.checkNote}` : ''}.`)
+  if (pl.note) notes.push(`Note: ${pl.note}`)
+  return openPrint({
+    docTitle: `Packing List ${pl.no}`,
+    title: 'PACKING LIST',
+    subtitle: `${pl.outboundNo} · Shipment #${pl.round}`,
+    meta: [
+      ['Packing list no.', pl.no],
+      ['Date', fmtDate(pl.date)],
+      ['Outbound DO', pl.outboundNo],
+      ['Customer', pl.customer],
+      ['Cartons', String(pl.cartons.length)],
+      ['Total qty / weight', `${fmtQty(total)}${weight ? ` · ${weight.toFixed(1)} kg` : ''}`],
+    ],
+    columns: [
+      { label: '#', width: '28px', align: 'center' },
+      { label: 'SKU', width: '80px' },
+      { label: 'Item' },
+      { label: 'Batch', width: '110px' },
+      { label: 'Expiry', width: '90px' },
+      { label: 'Qty', width: '70px', align: 'right' },
+      { label: 'Unit', width: '55px' },
+      { label: 'Check', width: '50px', align: 'center' },
+    ],
+    rows,
+    notes,
+    signatures: [`Packed by (${pl.createdBy})`, `Checked by${pl.checkedBy ? ` (${pl.checkedBy})` : ''}`, 'Received by'],
+  })
 }

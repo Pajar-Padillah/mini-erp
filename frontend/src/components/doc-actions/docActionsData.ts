@@ -114,10 +114,12 @@ const FLOWS: { type: string; prefix: string; to: string }[][] = [
     { type: 'Sales Delivery', prefix: 'DO', to: '/sales-deliveries' },
     { type: 'Sales Invoice', prefix: 'INV', to: '/sales-invoices' },
     { type: 'Sales Payment', prefix: 'PAY', to: '/sales-payments' },
+    { type: 'Sales Return', prefix: 'SRT', to: '/sales-returns' },
   ],
   [
     { type: 'Purchase Request', prefix: 'PR', to: '/purchase-requests' },
     { type: 'Purchase Order', prefix: 'PO', to: '/purchase-orders' },
+    { type: 'Purchase Receipt', prefix: 'GR', to: '/purchase-receipts' },
     { type: 'Purchase Invoice', prefix: 'PI', to: '/purchase-invoices' },
     { type: 'Purchase Payment', prefix: 'PP', to: '/purchase-payments' },
     { type: 'Purchase Return', prefix: 'PRT', to: '/purchase-returns' },

@@ -59,6 +59,9 @@ export const PERM_TREE: PermModule[] = [
     items: [
       { key: 'inbound-receiving', label: 'Inbound & Putaway', hint: 'Execute = putaway', acts: ['view', 'create', 'edit', 'delete', 'execute'] },
       { key: 'outbound-picking', label: 'Outbound Picking (FEFO)', hint: 'Execute = pick & dispatch', acts: ['view', 'create', 'delete', 'execute'] },
+      { key: 'picking-list', label: 'Picking List', hint: 'Create = from Sales Order · Execute = allocate & pick', acts: ['view', 'create', 'execute'] },
+      { key: 'packing-list', label: 'Packing List', hint: 'Edit = continue a draft / repack after a discrepancy', acts: ['view', 'create', 'edit', 'delete'] },
+      { key: 'checking-list', label: 'Checking List', hint: 'Execute = count, confirm & dispatch', acts: ['view', 'execute'] },
       { key: 'warehouse-tasks', label: 'Warehouse Tasks', hint: 'Create / cancel putaway & picking tasks', acts: ['view', 'create', 'delete'] },
       { key: 'task-scan', label: 'Mobile Scan', hint: 'Execute tasks by scanning', acts: ['view', 'execute'] },
     ],

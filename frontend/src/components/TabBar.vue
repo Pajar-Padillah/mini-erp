@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, type Component } from 'vue'
 import { useRouter } from 'vue-router'
-import { ChatDotRound, Close, HomeFilled, ShoppingCart, Van, Document, Wallet, User, OfficeBuilding, Goods, House, Notebook, Discount, CreditCard, Files, Memo, ShoppingBag, Tickets, RefreshLeft } from '@element-plus/icons-vue'
+import { ChatDotRound, Close, HomeFilled, ShoppingCart, Van, Document, Wallet, User, OfficeBuilding, Goods, House, Notebook, Discount, CreditCard, Files, Memo, ShoppingBag, Tickets, RefreshLeft, Box } from '@element-plus/icons-vue'
 import { useTabsStore } from '../stores/tabsStore'
 import { staticMenuItem } from '../navigation/menu'
 
@@ -11,12 +11,12 @@ const tabsStore = useTabsStore()
 const ICONS: Record<string, Component> = {
   home: HomeFilled, chat: ChatDotRound, approval: Tickets, cart: ShoppingCart, van: Van, document: Document, wallet: Wallet,
   customer: User, supplier: OfficeBuilding, product: Goods, warehouse: House, coa: Notebook, tax: Discount,
-  'quote': Tickets, 'purchase-request': Memo, 'purchase-order': ShoppingBag, 'purchase-invoice': Files, 'purchase-payment': CreditCard, 'purchase-return': RefreshLeft,
+  'quote': Tickets, 'purchase-request': Memo, 'purchase-order': ShoppingBag, 'purchase-receipt': Box, 'purchase-invoice': Files, 'purchase-payment': CreditCard, 'purchase-return': RefreshLeft, 'sales-return': RefreshLeft,
 }
 const ICON_COLORS: Record<string, string> = {
   home: 'indigo', chat: 'blue', approval: 'amber', cart: 'indigo', van: 'blue', document: 'amber', wallet: 'green',
   customer: 'indigo', supplier: 'blue', product: 'amber', warehouse: 'green', coa: 'indigo', tax: 'blue',
-  'quote': 'indigo', 'purchase-request': 'indigo', 'purchase-order': 'blue', 'purchase-invoice': 'amber', 'purchase-payment': 'green', 'purchase-return': 'blue',
+  'quote': 'indigo', 'purchase-request': 'indigo', 'purchase-order': 'blue', 'purchase-receipt': 'green', 'purchase-invoice': 'amber', 'purchase-payment': 'green', 'purchase-return': 'blue', 'sales-return': 'indigo',
 }
 
 function tabIcon(key: string): Component {

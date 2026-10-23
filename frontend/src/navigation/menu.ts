@@ -89,6 +89,7 @@ const ROUTED_MODULES: MenuModule[] = [
       ['sales-deliveries', 'Sales Deliveries', Van],
       ['sales-invoices', 'Sales Invoices', Document],
       ['sales-payments', 'Sales Payments', Wallet],
+      ['sales-returns', 'Sales Returns', RefreshLeft],
     ]],
   ], true),
   mod('purchase', 'Purchase', ShoppingBag, [
@@ -97,6 +98,7 @@ const ROUTED_MODULES: MenuModule[] = [
     ]],
     ['Purchase Transactions', [
       ['purchase-orders', 'Purchase Orders', ShoppingBag],
+      ['purchase-receipts', 'Purchase Receipts', Box],
       ['purchase-invoices', 'Purchase Invoices', Files],
       ['purchase-payments', 'Purchase Payments', CreditCard],
       ['purchase-returns', 'Purchase Returns', RefreshLeft],
@@ -118,6 +120,9 @@ export const STATIC_MODULES: MenuModule[] = [
     ['Warehouse Operations', [
       ['inbound-receiving', 'Inbound & Putaway', Download],
       ['outbound-picking', 'Outbound Picking (FEFO)', Upload],
+      ['picking-list', 'Picking List', Tickets],
+      ['packing-list', 'Packing List', TakeawayBox],
+      ['checking-list', 'Checking List', Finished],
       ['warehouse-tasks', 'Warehouse Tasks', List],
       ['task-scan', 'Mobile Scan', Iphone],
     ]],

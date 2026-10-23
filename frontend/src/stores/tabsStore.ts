@@ -22,8 +22,10 @@ const TITLES: Record<string, string> = {
   'chart-of-accounts-list': 'Chart of Accounts',
   'tax-codes-list': 'Tax Codes',
   'sales-quotes-list': 'Sales Quotes',
+  'sales-returns-list': 'Sales Returns',
   'purchase-requests-list': 'Purchase Requests',
   'purchase-orders-list': 'Purchase Orders',
+  'purchase-receipts-list': 'Purchase Receipts',
   'purchase-invoices-list': 'Purchase Invoices',
   'purchase-payments-list': 'Purchase Payments',
   'purchase-returns-list': 'Purchase Returns',
@@ -60,8 +62,10 @@ function iconFor(route: RouteLocationNormalized): AppTab['icon'] {
   if (name === 'chart-of-accounts-list') return 'coa'
   if (name === 'tax-codes-list') return 'tax'
   if (name === 'sales-quotes-list') return 'quote'
+  if (name === 'sales-returns-list') return 'sales-return'
   if (name === 'purchase-requests-list') return 'purchase-request'
   if (name === 'purchase-orders-list') return 'purchase-order'
+  if (name === 'purchase-receipts-list') return 'purchase-receipt'
   if (name === 'purchase-invoices-list') return 'purchase-invoice'
   if (name === 'purchase-payments-list') return 'purchase-payment'
   if (name === 'purchase-returns-list') return 'purchase-return'

@@ -225,6 +225,7 @@ export const DASHBOARDS: DashboardView[] = [
       { label: 'Sales Deliveries', to: '/sales-deliveries' },
       { label: 'Sales Invoices', to: '/sales-invoices' },
       { label: 'Sales Payments', to: '/sales-payments' },
+      { label: 'Sales Returns', to: '/sales-returns' },
       { label: 'Sales Reports', to: '/reports/sales-reports' },
     ],
   },
@@ -291,6 +292,7 @@ export const DASHBOARDS: DashboardView[] = [
     drilldown: [
       { label: 'Purchase Requests', to: '/purchase-requests' },
       { label: 'Purchase Orders', to: '/purchase-orders' },
+      { label: 'Purchase Receipts', to: '/purchase-receipts' },
       { label: 'Purchase Invoices', to: '/purchase-invoices' },
       { label: 'Purchase Payments', to: '/purchase-payments' },
       { label: 'Purchase Returns', to: '/purchase-returns' },
